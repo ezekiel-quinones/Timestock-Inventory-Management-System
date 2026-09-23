@@ -793,6 +793,44 @@ def recent_transactions_api():
 def dashboard_metrics():
     return analytics.get_all_time_metrics()
 
+
+@router.get("/dashboard/charts")
+def dashboard_charts(user: dict = Depends(get_current_user)):
+    if not user:
+        raise HTTPException(status_code=401, detail="Not logged in")
+
+    fastest_df = graphs.get_fastest_moving_materials_data()
+    reorder_df = graphs.get_reorder_point_chart(return_df=True)
+
+    def as_number(value):
+        return 0.0 if pd.isna(value) else float(value)
+
+    fastest_moving = [
+        {
+            "item_name": "" if pd.isna(row.item_name) else str(row.item_name),
+            "unit_measurement": "" if pd.isna(row.unit_measurement) else str(row.unit_measurement),
+            "total_material_used": as_number(row.total_material_used),
+        }
+        for row in fastest_df.itertuples(index=False)
+    ]
+
+    reorder_points = [] if reorder_df is None else [
+        {
+            "material_id": "" if pd.isna(row.material_id) else str(row.material_id),
+            "item_name": "" if pd.isna(row.item_name) else str(row.item_name),
+            "current_stock": as_number(row.current_stock),
+            "avg_daily_usage": as_number(row.avg_daily_usage),
+            "reorder_point": as_number(row.reorder_point),
+            "reorder_status": "" if pd.isna(row.reorder_status) else str(row.reorder_status),
+        }
+        for row in reorder_df.itertuples(index=False)
+    ]
+
+    return {
+        "fastest_moving": fastest_moving,
+        "reorder_points": reorder_points,
+    }
+
 @router.get("/dashboard/stock-flow")
 def stock_flow_summary():
     try:

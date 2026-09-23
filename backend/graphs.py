@@ -213,7 +213,7 @@ def generate_turnover_summary(df):
     """
 
 
-def get_fastest_moving_materials_chart():
+def get_fastest_moving_materials_data():
     query = """
     SELECT 
         i.item_name,
@@ -234,7 +234,11 @@ def get_fastest_moving_materials_chart():
 
     with duckdb.connect(DB_PATH) as conn:
     # with duckdb.connect('md:mdb_timestock', config={"motherduck_token": MOTHERDUCK_TOKEN}) as conn:
-        df = conn.execute(query).fetchdf()
+        return conn.execute(query).fetchdf()
+
+
+def get_fastest_moving_materials_chart():
+    df = get_fastest_moving_materials_data()
 
     if df.empty:
         return "<p>No data available for the past 3 months.</p>"

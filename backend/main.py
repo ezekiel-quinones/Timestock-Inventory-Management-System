@@ -29,6 +29,8 @@ else:
     allowed_origins = [
         "http://127.0.0.1:8000",
         "http://localhost:8000",
+        "http://127.0.0.1:5173",
+        "http://localhost:5173",
     ]
     https_only = False
 
@@ -63,9 +65,15 @@ async def no_cache_headers(request: Request, call_next):
 
 # Set up Jinja templates directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FRONTEND_DIST = Path(BASE_DIR).parent / "frontend" / "dist"
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "../templates/html"))
 app.mount("/css", StaticFiles(directory=os.path.join(BASE_DIR, "../templates/css")), name="css")
 app.mount("/images", StaticFiles(directory=os.path.join(BASE_DIR, "../templates/images")), name="images")
+app.mount(
+    "/login-assets",
+    StaticFiles(directory=str(FRONTEND_DIST), check_dir=False),
+    name="login-assets",
+)
 
 # Home route
 @app.get("/", response_class=HTMLResponse)
@@ -77,8 +85,6 @@ def index(request: Request, user: dict = Depends(get_current_user)):
     context = {
         "request": request,
         "user": user,
-        "fastest_moving_html": graphs.get_fastest_moving_materials_chart(),
-        "reorder_point_html": graphs.get_reorder_point_chart(),
     }
 
     return templates.TemplateResponse(
