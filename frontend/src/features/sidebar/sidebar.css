@@ -1,0 +1,512 @@
+#timestock-sidebar-root,
+#timestock-sidebar-root * {
+  box-sizing: border-box;
+}
+
+#timestock-sidebar-root {
+  --ts-sidebar-cyan: #62d0df;
+  --ts-sidebar-cyan-soft: #b7edf3;
+  --ts-sidebar-text: #dceaf0;
+  --ts-sidebar-muted: #89a5b3;
+  position: sticky !important;
+  top: 0 !important;
+  left: 0 !important;
+  z-index: 1200 !important;
+  display: block !important;
+  align-self: start !important;
+  width: 5.25rem !important;
+  min-width: 5.25rem !important;
+  max-width: 5.25rem !important;
+  height: 100vh !important;
+  min-height: 100vh !important;
+  overflow: hidden !important;
+  color: var(--ts-sidebar-text) !important;
+  background:
+    radial-gradient(circle at 40% 0%, rgba(70, 178, 199, 0.16), transparent 18rem),
+    linear-gradient(180deg, #0b2a42 0%, #071c2e 100%) !important;
+  border: 0 !important;
+  border-right: 1px solid rgba(136, 202, 215, 0.15) !important;
+  box-shadow: 8px 0 30px rgba(4, 25, 40, 0.08) !important;
+  isolation: isolate;
+  font-family: "Open Sans", "Segoe UI", sans-serif !important;
+  transition:
+    width 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    max-width 220ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+#timestock-sidebar-root:hover,
+#timestock-sidebar-root:focus-within {
+  width: 16.5rem !important;
+  max-width: 16.5rem !important;
+  border-right: 1px solid rgba(98, 208, 223, 0.28) !important;
+  box-shadow: 18px 0 45px rgba(4, 25, 40, 0.2) !important;
+}
+
+#timestock-sidebar-root::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  content: "";
+  pointer-events: none;
+  opacity: 0.16;
+  background-image:
+    linear-gradient(rgba(167, 224, 235, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(167, 224, 235, 0.12) 1px, transparent 1px);
+  background-size: 30px 30px;
+  mask-image: linear-gradient(to bottom, black, transparent 72%);
+}
+
+.ts-sidebar-layout {
+  padding-left: 0 !important;
+  grid-template-columns: 5.25rem minmax(0, 1fr) !important;
+}
+
+.ts-sidebar-layout > main {
+  min-width: 0 !important;
+}
+
+#timestock-sidebar-root .ts-sidebar-surface {
+  display: flex;
+  flex-direction: column;
+  width: 16.5rem;
+  height: 100%;
+  min-height: 0;
+}
+
+#timestock-sidebar-root .ts-sidebar-header {
+  position: relative;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  height: 5.25rem;
+  padding: 0 1rem;
+}
+
+#timestock-sidebar-root .ts-brand {
+  display: grid;
+  grid-template-columns: 2.75rem 1fr;
+  align-items: center;
+  gap: 0.8rem;
+  width: 100%;
+  color: white !important;
+  text-decoration: none !important;
+}
+
+#timestock-sidebar-root .ts-brand-mark {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  padding: 0.22rem;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.93);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 0.75rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.16);
+}
+
+#timestock-sidebar-root .ts-brand-mark img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+#timestock-sidebar-root .ts-brand-copy,
+#timestock-sidebar-root .ts-role-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+#timestock-sidebar-root .ts-brand-copy strong {
+  font-family: "Poppins", "Segoe UI", sans-serif;
+  font-size: 0.96rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+#timestock-sidebar-root .ts-brand-copy small {
+  margin-top: 0.22rem;
+  color: var(--ts-sidebar-muted);
+  font-size: 0.57rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+#timestock-sidebar-root .ts-collapse-hint {
+  position: absolute;
+  right: 0.85rem;
+  width: 1rem;
+  height: 1rem;
+  color: #7293a2;
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+
+#timestock-sidebar-root:hover .ts-collapse-hint,
+#timestock-sidebar-root:focus-within .ts-collapse-hint {
+  opacity: 0.85;
+}
+
+#timestock-sidebar-root .ts-sidebar-divider {
+  flex: 0 0 auto;
+  height: 1px;
+  margin: 0 0.9rem;
+  background: linear-gradient(90deg, transparent, rgba(157, 214, 225, 0.25), transparent);
+}
+
+#timestock-sidebar-root .ts-sidebar-nav {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 1rem 0 0.75rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-color: rgba(135, 187, 198, 0.28) transparent;
+  scrollbar-width: thin;
+}
+
+#timestock-sidebar-root .ts-sidebar-nav::-webkit-scrollbar {
+  width: 4px;
+}
+
+#timestock-sidebar-root .ts-sidebar-nav::-webkit-scrollbar-thumb {
+  background: rgba(135, 187, 198, 0.28);
+  border-radius: 999px;
+}
+
+#timestock-sidebar-root .ts-nav-label {
+  height: 1.35rem;
+  margin: 0 1.2rem 0.45rem;
+  color: #718f9e;
+  font-size: 0.61rem;
+  font-weight: 600;
+  line-height: 1.35rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+#timestock-sidebar-root .ts-sidebar-nav ul {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+#timestock-sidebar-root .ts-sidebar-nav li {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+#timestock-sidebar-root .ts-nav-link,
+#timestock-sidebar-root .ts-signout {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2.75rem minmax(0, 1fr) 0.5rem;
+  align-items: center;
+  width: calc(100% - 1.25rem);
+  height: 2.85rem;
+  min-height: 2.85rem;
+  padding: 0 0.62rem;
+  margin: 0 0.625rem;
+  color: #a9c0cb !important;
+  text-decoration: none !important;
+  border: 1px solid transparent;
+  border-radius: 0.72rem;
+  outline: none;
+  cursor: pointer;
+  transition:
+    color 180ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease;
+}
+
+#timestock-sidebar-root .ts-nav-link:hover,
+#timestock-sidebar-root .ts-signout:hover {
+  color: white !important;
+  background: rgba(150, 219, 231, 0.09);
+  border-color: rgba(150, 219, 231, 0.11);
+}
+
+#timestock-sidebar-root .ts-nav-link:focus-visible,
+#timestock-sidebar-root .ts-signout:focus-visible,
+#timestock-sidebar-root .ts-brand:focus-visible,
+#timestock-sidebar-root .ts-skip-link:focus-visible {
+  outline: 2px solid var(--ts-sidebar-cyan);
+  outline-offset: 2px;
+}
+
+#timestock-sidebar-root .ts-nav-link.is-active {
+  color: white !important;
+  background: linear-gradient(100deg, rgba(37, 149, 174, 0.34), rgba(57, 170, 190, 0.14));
+  border-color: rgba(105, 215, 230, 0.23);
+  box-shadow: inset 3px 0 0 var(--ts-sidebar-cyan);
+}
+
+#timestock-sidebar-root .ts-nav-icon {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+}
+
+#timestock-sidebar-root .ts-nav-icon svg {
+  width: 1.18rem;
+  height: 1.18rem;
+  stroke-width: 1.9;
+}
+
+#timestock-sidebar-root .ts-nav-link.is-active .ts-nav-icon {
+  color: var(--ts-sidebar-cyan-soft);
+}
+
+#timestock-sidebar-root .ts-nav-text {
+  overflow: hidden;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#timestock-sidebar-root .ts-active-dot {
+  width: 0.32rem;
+  height: 0.32rem;
+  background: var(--ts-sidebar-cyan);
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px rgba(98, 208, 223, 0.12);
+}
+
+#timestock-sidebar-root .ts-sidebar-copy {
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(-5px);
+  transition:
+    opacity 130ms ease,
+    transform 180ms ease;
+}
+
+#timestock-sidebar-root:hover .ts-sidebar-copy,
+#timestock-sidebar-root:focus-within .ts-sidebar-copy {
+  pointer-events: auto;
+  opacity: 1;
+  transform: translateX(0);
+  transition-delay: 45ms;
+}
+
+#timestock-sidebar-root .ts-sidebar-footer {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.8rem 0 1rem;
+  border-top: 1px solid rgba(145, 201, 212, 0.13);
+}
+
+#timestock-sidebar-root .ts-role-card {
+  display: grid;
+  grid-template-columns: 2.75rem 1fr;
+  align-items: center;
+  width: calc(100% - 1.25rem);
+  min-height: 3.4rem;
+  padding: 0.32rem 0.62rem;
+  margin: 0 0.625rem;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(139, 202, 214, 0.11);
+  border-radius: 0.75rem;
+}
+
+#timestock-sidebar-root .ts-role-icon {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  color: #8de0d1;
+}
+
+#timestock-sidebar-root .ts-role-icon svg {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+#timestock-sidebar-root .ts-role-copy strong {
+  color: #eaf5f8;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+#timestock-sidebar-root .ts-role-copy small {
+  margin-top: 0.15rem;
+  color: #7293a2;
+  font-size: 0.62rem;
+  line-height: 1.25;
+}
+
+#timestock-sidebar-root .ts-signout {
+  color: #9fb5c0 !important;
+}
+
+#timestock-sidebar-root .ts-signout:hover {
+  color: #ffd3d3 !important;
+  background: rgba(197, 77, 77, 0.11);
+  border-color: rgba(226, 124, 124, 0.12);
+}
+
+#timestock-sidebar-root .ts-skip-link {
+  position: absolute;
+  top: 0.65rem;
+  left: 0.65rem;
+  z-index: 5;
+  width: max-content;
+  padding: 0.55rem 0.75rem;
+  color: #082538 !important;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-decoration: none !important;
+  background: white;
+  border-radius: 0.5rem;
+  transform: translateY(-180%);
+  transition: transform 160ms ease;
+}
+
+#timestock-sidebar-root .ts-skip-link:focus {
+  transform: translateY(0);
+}
+
+.ts-sidebar-trigger,
+.ts-sidebar-overlay {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  body.ts-sidebar-open {
+    overflow: hidden !important;
+  }
+
+  .ts-sidebar-layout {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .ts-sidebar-layout > main {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+  }
+
+  #timestock-sidebar-root,
+  #timestock-sidebar-root:hover,
+  #timestock-sidebar-root:focus-within {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    z-index: 12001 !important;
+    width: min(18rem, calc(100vw - 4rem)) !important;
+    min-width: min(18rem, calc(100vw - 4rem)) !important;
+    max-width: min(18rem, calc(100vw - 4rem)) !important;
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    border-right: 1px solid rgba(98, 208, 223, 0.26) !important;
+    box-shadow: 22px 0 55px rgba(3, 20, 33, 0.32) !important;
+    transform: translateX(-105%);
+    transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+  }
+
+  #timestock-sidebar-root[data-mobile-open="true"] {
+    transform: translateX(0);
+  }
+
+  #timestock-sidebar-root .ts-sidebar-surface {
+    width: 100%;
+  }
+
+  #timestock-sidebar-root .ts-sidebar-header {
+    padding-left: 4.2rem;
+  }
+
+  #timestock-sidebar-root .ts-collapse-hint {
+    display: none;
+  }
+
+  #timestock-sidebar-root .ts-sidebar-copy {
+    pointer-events: auto;
+    opacity: 1;
+    transform: none;
+  }
+
+  .ts-sidebar-trigger {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 12002;
+    display: grid;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    place-items: center;
+    color: #0d4963;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(22, 107, 139, 0.2);
+    border-radius: 0.75rem;
+    box-shadow: 0 8px 24px rgba(7, 37, 58, 0.16);
+    outline: none;
+    cursor: pointer;
+    backdrop-filter: blur(12px);
+    transition:
+      color 180ms ease,
+      background-color 180ms ease,
+      border-color 180ms ease;
+  }
+
+  .ts-sidebar-trigger:hover {
+    color: #082b3d;
+    background: white;
+    border-color: rgba(22, 107, 139, 0.4);
+  }
+
+  .ts-sidebar-trigger:focus-visible {
+    outline: 2px solid #1685a8;
+    outline-offset: 3px;
+  }
+
+  .ts-sidebar-trigger svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .ts-sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 12000;
+    display: block;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    background: rgba(3, 19, 31, 0.56);
+    border: 0;
+    cursor: pointer;
+    backdrop-filter: blur(3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #timestock-sidebar-root,
+  #timestock-sidebar-root *,
+  .ts-sidebar-trigger,
+  .ts-sidebar-overlay {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,7 +1,8 @@
 # "List" was added here
 from typing import Optional, List 
+from pathlib import Path
 from fastapi import APIRouter, Form, HTTPException, Header, Request
-from fastapi.responses import RedirectResponse, HTMLResponse
+from fastapi.responses import RedirectResponse, HTMLResponse, FileResponse
 from fastapi.templating import Jinja2Templates
 from starlette.status import HTTP_302_FOUND
 from jose import jwt, JWTError
@@ -16,6 +17,7 @@ from .app_schemas import UserListItem
 router = APIRouter()
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FRONTEND_INDEX = Path(BASE_DIR).parent / "frontend" / "dist" / "index.html"
 
 TEMPLATES_DIR = os.path.abspath(
     os.path.join(BASE_DIR, "..", "templates", "html")
@@ -27,6 +29,9 @@ print("FILES:", os.listdir(TEMPLATES_DIR))
 
 @router.get("/login", response_class=HTMLResponse)
 def login_page(request: Request):
+    if FRONTEND_INDEX.is_file():
+        return FileResponse(FRONTEND_INDEX, media_type="text/html")
+
     return templates.TemplateResponse(
         request,
         "Login.html",

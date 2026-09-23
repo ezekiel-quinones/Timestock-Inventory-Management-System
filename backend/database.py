@@ -1834,6 +1834,7 @@ def get_products():
                 i.id AS item_id,
                 i.item_name,
                 i.item_description,
+                i.category_id,
                 pc.category_name AS item_category_name,  -- <-- join result
                 p.id AS product_id,
                 p.unit_price,

@@ -2,366 +2,56 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=0.55">
-  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-  <title>Times Stock IMS</title>
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp" rel="stylesheet">
-  <link rel="stylesheet" href="../css/Analytics.css?v=5">
-  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-  
-<style>
-.confidence-badge.high {
-  background: #e6f7ee;
-  color: #1f9254;
-}
-
-.confidence-badge.medium {
-  background: #fff6e5;
-  color: #a87400;
-}
-
-.confidence-badge.low {
-  background: #fdecea;
-  color: #b42318;
-}
-@media screen and (max-width: 768px) {
-  .chart-box {
-    position: relative; 
-  }
-
-  .chart-box .bubble-wrapper {
-    display: flex;
-    justify-content: center; 
-    margin-top: 1rem;       
-  }
-  /* Container */
-  .container {
-    grid-template-columns: 1fr;
-    padding: 0 1rem;
-  }
-
-  main {
-    padding: 1rem 1rem 2rem 1rem;
-  }
-
-  aside {
-    height: auto;
-    width: 100%;
-    position: relative;
-  }
-
-  aside .sidebar {
-    height: auto;
-  }
-
-  /* Header bar aligned like other tabs */
-  .header-bar {
-    flex-direction: row;        /* horizontal layout */
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    margin-bottom: 1rem;
-    padding-right: 0;
-  }
-
-  /* Top bar inside header */
-  .top-bar {
-    gap: 0.5rem;
-  }
-
-  /* Summary cards stack */
-  #summary-cards {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  /* Charts stack vertically */
-  .chart-row {
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  /* Filter buttons wrap */
-  .filter-buttons {
-    flex-wrap: wrap;
-  }
-
-  /* Main date input full width */
-  main .date {
-    width: 100%;
-    padding: 0.5rem 1rem;
-  }
-
-  main .date input[type='date'] {
-    width: 100%;
-  }
-
-
-}
-
-</style>
-
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-  document.querySelectorAll('.month-header').forEach(function(header){
-    header.addEventListener('click', function(){
-      let block = header.parentElement;
-      block.classList.toggle('collapsed');
-      let arrow = header.querySelector('.arrow');
-      arrow.textContent = block.classList.contains('collapsed') ? '▶' : '▼';
-    });
-  });
-});
-</script>
-
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="theme-color" content="#0b253d">
+  <title>Analytics | TimeStock</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&amp;family=Poppins:wght@600;700&amp;display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp">
+  <link rel="stylesheet" href="/login-assets/analytics/analytics.css">
 </head>
-<body>
-  <div class="container">
-    <aside>
-      <div class="top">
-        <div class="logo">
-          <img src="../images/TIMESTOCK_BG.png">
-        </div>
-        <h2>TIME<span class="danger">STOCK</span></h2>
-    </div>
-    <div class="mobile-menu-btn">
-      <span class="material-symbols-sharp">menu</span>
-    </div>
-       {% include "sidebar.html" %}
-</aside>
-<!-----END OF ASIDE MUENU----->
-<main>
-  <div class="header-bar">
-  <h1>Analytics Management</h1>
-  <div class="top-bar">
-    {% include 'alert.html' %}
-    {% include "profile.html" %}
-  </div>
-</div>
+<body class="ts-analytics-page">
+  <div class="container ts-analytics-shell">
+    {% include "sidebar.html" %}
 
- <!-- Filter Buttons -->
-<div class="filter-buttons mb-4">
-  <button onclick="fetchSummary('week')" class="btn btn-primary active" >Week</button>
-  <button onclick="fetchSummary('month')" class="btn btn-outline-primary">Month</button>
-  <button onclick="fetchSummary('year')" class="btn btn-outline-primary">Year</button>
-</div>
-
-<!-- Summary Cards -->
-<div class="row" id="summary-cards">
-  <div class="col-lg-4 col-md-6 mb-3">
-    <div class="card p-4 shadow-sm">
-      <h5>Total Orders</h5>
-      <p id="orders-count" class="summary-value"></p>
-      <small class="text-muted">Product Orders</small>
-    </div>
-  </div>
-  <div class="col-lg-4 col-md-6 mb-3">
-    <div class="card p-4 shadow-sm">
-      <h5>Total Sales</h5>
-      <p id="sales-count" class="summary-value"></p>
-      <small class="text-muted">Number of Sales</small>
-    </div>
-  </div>
-  <div class="col-lg-4 col-md-6 mb-3">  
-    <div class="card p-4 shadow-sm">
-      <h5>Total Revenue</h5>
-      <p id="revenue-count" class="summary-value"></p>
-      <small class="text-muted">Revenue from the sold Products</small>
-    </div>
-  </div>
-</div>
-
-<div class="chart-row">
-  <div class="chart-box">
-  <h2 class="chart-title">Orders, Sales, and Revenue</h2>
-
-    <div class="bubble-wrapper">
-    <button class="bubble-btn" onclick="toggleBubble('reportBubble')">📄 View Summary</button>
-    <div class="popup-bubble" id="reportBubble">
-      <span class="close-btn" onclick="toggleBubble('reportBubble')">&times;</span>
-        {{ chart_report | safe }}
+    <main id="main-content" class="ts-analytics-main">
+      <div
+        id="timestock-analytics-root"
+        data-first-name="{{ user['firstname'] | e }}"
+        data-last-name="{{ user['lastname'] | e }}"
+        data-role="{{ user['role'] | e }}"
+      >
+        <noscript>JavaScript is required to view TimeStock analytics.</noscript>
       </div>
-    </div>
-    
-  {{ chart_html | safe }}
-
-
+    </main>
   </div>
 
-<div class="chart-box">
-  <h2 class="chart-title">Inventory Turnover Rate</h2>
-    <div class="bubble-wrapper">
-    <button class="bubble-btn" onclick="toggleBubble('turnoverSummaryBubble')">📄 View Summary</button>
-    <div class="popup-bubble" id="turnoverSummaryBubble">
-      <span class="close-btn" onclick="toggleBubble('turnoverSummaryBubble')">&times;</span>
-      {{ summary | safe }}
-    </div>
-  </div>
-  {{ turnover_combined_html | safe }}
-</div>
-
-
-<!-- STL Decomposition Chart -->
-<div class="chart-box">
-  <h2 class="chart-title">STL Decomposition of Monthly Orders</h2>
-    <!-- Bubble Trigger -->
-    <div class="bubble-wrapper">
-
-      <button onclick="toggleBubble('stlPopupBubble')" class="bubble-btn">📊 View Summary</button>
-
-      <div id="stlPopupBubble" class="popup-bubble">
-        <span class="close-btn" onclick="toggleBubble('stlPopupBubble')">×</span>
-        {{ stl_report | safe }}
-      </div>
-
-    </div>
-  <!-- Chart -->
-   
-  <div class="chart-container">
-    {{ stl_html | safe }}
-
-<section class="analytics-section">
-
-  <h3>📈 STL-Based Order Trend Recommendation</h3>
-
-  <div class="recommendation-box">
-      {% if stl_confidence %}
-      <span class="confidence-badge 
-        {% if 'High' in stl_confidence.label %}high
-        {% elif 'Moderate' in stl_confidence.label %}medium
-        {% else %}low{% endif %}">
-        {{ stl_confidence.label }} ({{ stl_confidence.score | round(2) }}%)
-      </span>
-    {% endif %}
-    {% if stl_recommendation_grouped %}
-      {% for block in stl_recommendation_grouped %}
-        <div class="month-block {% if not loop.first %}collapsed{% endif %}">
-          <h4 class="month-header">
-            <span class="arrow">{% if loop.first %}▼{% else %}▶{% endif %}</span>
-            📅 {{ block.month }}
-          </h4>
-          <ul class="month-recs">
-            {% for rec in block.recs %}
-              <li>{{ rec | safe }}</li>
-            {% endfor %}
-          </ul>
-        </div>
-      {% endfor %}
-    {% else %}
-      <ul>
-        {% for rec in stl_recommendation %}
-          <li>{{ rec | safe }}</li>
-        {% endfor %}
-      </ul>
-    {% endif %}
-  </div>
-</section>
-
-
-
-  </div>
-</div>
-
-<!-- Moving AVG Chart -->
-<div class="chart-box">
-  <h2 class="chart-title">Moving Average of Monthly Sales</h2>
-  <div class="bubble-wrapper">
-    <button class="bubble-btn" onclick="toggleBubble('ma-bubble')">📊 View Summary</button>
-    <div id="ma-bubble" class="popup-bubble">
-      <span class="close-btn" onclick="toggleBubble('ma-bubble')">&times;</span>
-      {{ ma_report | safe }}
-    </div>
-  </div>
-  {{ ma_chart_html | safe }}
-  
-<section class="analytics-section">
-  <h3>📊 Moving Average-Based Sales Recommendations</h3>
-  <div class="recommendation-box">
-    <ul>
-      {% for rec in ma_recommendation %}
-        <li>{{ rec | safe }}</li>
-      {% endfor %}
-    </ul>
-  </div>
-</section>
-
-</div>
-</div>
-
-
-</div>
-
-
-
-  </div>
+  <script id="timestock-analytics-data" type="application/json">
+    {
+      "charts": {
+        "performance": {{ chart_html.rsplit('Plotly.newPlot(', 1)[-1] | tojson }},
+        "turnover": {{ turnover_combined_html.rsplit('Plotly.newPlot(', 1)[-1] | tojson }},
+        "stl": {{ stl_html.rsplit('Plotly.newPlot(', 1)[-1] | tojson }},
+        "movingAverage": {{ ma_chart_html.rsplit('Plotly.newPlot(', 1)[-1] | tojson }}
+      },
+      "reports": {
+        "performance": {{ chart_report | tojson }},
+        "turnover": {{ summary | tojson }},
+        "stl": {{ stl_report | tojson }},
+        "movingAverage": {{ ma_report | tojson }}
+      },
+      "recommendations": {
+        "stlFlat": {{ stl_recommendation | tojson }},
+        "stlGrouped": {{ stl_recommendation_grouped | tojson }},
+        "stlConfidence": {{ stl_confidence | tojson }},
+        "movingAverage": {{ ma_recommendation | tojson }}
+      }
+    }
+  </script>
+  <script type="module" src="/login-assets/analytics/analytics.js"></script>
 </body>
 </html>
-<script>
-  const notificationIcon = document.getElementById("notificationToggle");
-  const dropdownMenu = document.getElementById("notificationDropdown");
-  
-  document.querySelectorAll('.btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-  });
-});
-  document.addEventListener("click", function (e) {
-    const isInside = notificationIcon.contains(e.target) || dropdownMenu.contains(e.target);
-    if (!isInside) {
-      dropdownMenu.style.display = "none";
-    }
-  });
-
-  notificationIcon.addEventListener("click", function (e) {
-    e.stopPropagation();
-    dropdownMenu.style.display = dropdownMenu.style.display === "block" ? "none" : "block";
-  });
-
-  function toggleBubble() {
-  const bubble = document.getElementById("stlPopupBubble");
-  bubble.style.display = bubble.style.display === "block" ? "none" : "block";
-}
- document.getElementById("toggleChartReport").addEventListener("click", function () {
-    document.querySelector(".report-container").classList.toggle("show");
-  });
-  function toggleBubble(id) {
-    const bubble = document.getElementById(id);
-    const isVisible = bubble.style.display === 'block';
-
-    // Close all bubbles first
-    document.querySelectorAll('.popup-bubble').forEach(b => b.style.display = 'none');
-
-    // Toggle the clicked one
-    bubble.style.display = isVisible ? 'none' : 'block';
-  }
-
-  window.addEventListener("click", function (e) {
-    const isInsideBubble = e.target.closest('.popup-bubble');
-    const isBubbleBtn = e.target.classList.contains('bubble-btn');
-
-    if (!isInsideBubble && !isBubbleBtn) {
-      document.querySelectorAll('.popup-bubble').forEach(b => b.style.display = 'none');
-    }
-  });
-</script>
-<script>
-  function fetchSummary(period) {
-    fetch(`/api/analytics/order-rev-sales?period=${period}`)
-      .then(response => response.json())
-      .then(data => {
-        document.getElementById('orders-count').textContent = data.total_orders;
-        document.getElementById('sales-count').textContent = data.total_sales;
-        document.getElementById('revenue-count').textContent = `₱${parseFloat(data.total_revenue).toLocaleString()}`;
-      })
-      .catch(error => console.error('Error fetching summary:', error));
-  }
-
-  // Default to "week" on page load
-  document.addEventListener("DOMContentLoaded", function() {
-    fetchSummary('week');
-  });
-</script>

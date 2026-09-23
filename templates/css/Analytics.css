@@ -362,16 +362,6 @@ main .date input[type='date'] {
     align-items: flex-start;
   }
 
-  aside {
-    height: auto;
-    width: 100%;
-    position: relative;
-  }
-
-  aside .sidebar {
-    height: auto;
-  }
-
   main {
     padding-right: 1rem;
   }
@@ -564,4 +554,3 @@ main .date input[type='date'] {
   color: var(--color-dark, #333);
   cursor: pointer;
 }
-
