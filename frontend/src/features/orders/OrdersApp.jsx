@@ -557,22 +557,26 @@ function CartPanel({
                                   <Label htmlFor={`${item.cart_id}-${materialIndex}-glass`}>
                                     Stock glass
                                   </Label>
-                                  <select
-                                    id={`${item.cart_id}-${materialIndex}-glass`}
-                                    value={material.selected_glass_id || ""}
+                                  <Select
+                                    value={material.selected_glass_id ? String(material.selected_glass_id) : undefined}
                                     disabled={glassOptions.length === 0}
-                                    aria-label={`Stock glass for ${material.item_name}`}
-                                    onChange={(event) =>
-                                      onSelectGlass(item.cart_id, materialIndex, event.target.value)
-                                    }
+                                    onValueChange={(value) => onSelectGlass(item.cart_id, materialIndex, value)}
                                   >
-                                    {glassOptions.length === 0 && <option value="">No compatible glass</option>}
-                                    {glassOptions.map((option) => (
-                                      <option key={option.material_id} value={option.material_id}>
-                                        {option.item_name} (Stock: {numberFormatter.format(asNumber(option.current_stock))})
-                                      </option>
-                                    ))}
-                                  </select>
+                                    <SelectTrigger
+                                      id={`${item.cart_id}-${materialIndex}-glass`}
+                                      className="orders-glass-select"
+                                      aria-label={`Stock glass for ${material.item_name}`}
+                                    >
+                                      <SelectValue placeholder={glassOptions.length ? "Select stock glass" : "No compatible glass"} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {glassOptions.map((option) => (
+                                        <SelectItem key={option.material_id} value={String(option.material_id)}>
+                                          {option.item_name} (Stock: {numberFormatter.format(asNumber(option.current_stock))})
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
                                 </div>
                               )}
                             </div>

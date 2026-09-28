@@ -2679,14 +2679,9 @@ def get_order_transactions_detailed():
 
 def delete_order_transaction(transaction_id: str):
     con = get_db_connection()
-    cur = con.cursor()
 
     try:
-        # Begin transaction
-        con.execute("BEGIN")
-
-        # Check if the order exists
-        existing = cur.execute("""
+        existing = con.execute("""
             SELECT id FROM order_transactions
             WHERE id = ?
         """, (transaction_id,)).fetchone()
@@ -2694,32 +2689,51 @@ def delete_order_transaction(transaction_id: str):
         if not existing:
             raise HTTPException(status_code=404, detail="Order transaction not found")
 
-        # Delete child order items
-        cur.execute("""
+        # DuckDB can reject a parent delete in the same transaction as its child delete.
+        # Keep a snapshot so child rows can be restored if the parent cannot be removed.
+        child_query = con.execute(
+            "SELECT * FROM order_items WHERE order_id = ?", (transaction_id,)
+        )
+        child_columns = [column[0] for column in child_query.description]
+        child_rows = child_query.fetchall()
+
+        con.execute("""
             DELETE FROM order_items
             WHERE order_id = ?
         """, (transaction_id,))
 
-        # Delete parent order transaction
-        cur.execute("""
-            DELETE FROM order_transactions
-            WHERE id = ?
-        """, (transaction_id,))
-
-        con.execute("COMMIT")
+        try:
+            con.execute("""
+                DELETE FROM order_transactions
+                WHERE id = ?
+            """, (transaction_id,))
+        except Exception as delete_error:
+            if child_rows:
+                columns = ", ".join('"' + name.replace('"', '""') + '"' for name in child_columns)
+                placeholders = ", ".join("?" for _ in child_columns)
+                try:
+                    con.executemany(
+                        f"INSERT INTO order_items ({columns}) VALUES ({placeholders})",
+                        child_rows,
+                    )
+                except Exception as restore_error:
+                    raise HTTPException(
+                        status_code=500,
+                        detail=f"Deletion failed and order items could not be restored: {restore_error}",
+                    ) from delete_error
+            raise
 
         return {
             "transaction_id": transaction_id,
             "message": "Order deleted successfully"
         }
 
+    except HTTPException:
+        raise
     except Exception as e:
-        # Rollback if anything fails
-        try:
-            con.execute("ROLLBACK")
-        except:
-            pass
-        raise HTTPException(status_code=500, detail=f"Deletion failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Deletion failed: {e}") from e
+    finally:
+        con.close()
 
 #Other Get/Reads
 def get_unit_measurements():
@@ -3118,7 +3132,7 @@ def delete_old_transactions(years: int, *, admin_id: str, dry_run: bool = False)
     if admin_id is None:
         raise ValueError("Error: Admin ID is required (admin only)")
     
-    if years < 2:
+    if years < 5:
         raise ValueError("Error: Cutoff year should be at least 5 years ago or older")
     
     admin_exists = con.execute("SELECT 1 FROM admin WHERE id = ?", (admin_id,)).fetchone()

@@ -3,10 +3,9 @@ import { createPortal } from "react-dom"
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
 import {
   LogOut,
-  Menu,
   PanelLeftClose,
+  PanelLeftOpen,
   ShieldCheck,
-  X,
 } from "lucide-react"
 
 import { getNavigationForRole, isCurrentRoute } from "./navigation"
@@ -20,33 +19,22 @@ function SidebarApp({ host, role }) {
   const navigation = getNavigationForRole(role)
   const roleLabel = role === "admin" ? "Administrator" : "Team member"
   const currentPath = window.location.pathname
-
-  React.useEffect(() => {
-    const layout = host.closest(".container")
-    const pageMain = layout?.querySelector("main") || document.querySelector("main")
-
-    layout?.classList.add("ts-sidebar-layout")
-    if (pageMain && !pageMain.id) {
-      pageMain.id = "main-content"
-    }
-
-    return () => {
-      layout?.classList.remove("ts-sidebar-layout")
-    }
-  }, [host])
+  const layout = host.closest(".ts-app-shell")
 
   React.useEffect(() => {
     host.dataset.mobileOpen = String(mobileOpen)
+    host.inert = window.innerWidth <= 768 && !mobileOpen
     document.body.classList.toggle("ts-sidebar-open", mobileOpen)
 
     if (mobileOpen) {
       openedOnce.current = true
       window.requestAnimationFrame(() => firstLinkRef.current?.focus())
-    } else if (openedOnce.current) {
+    } else if (openedOnce.current && window.innerWidth <= 768) {
       triggerRef.current?.focus()
     }
 
     return () => {
+      host.inert = false
       document.body.classList.remove("ts-sidebar-open")
     }
   }, [host, mobileOpen])
@@ -59,6 +47,7 @@ function SidebarApp({ host, role }) {
     }
 
     function handleResize() {
+      host.inert = window.innerWidth <= 768 && !mobileOpen
       if (window.innerWidth > 768) {
         setMobileOpen(false)
       }
@@ -71,7 +60,7 @@ function SidebarApp({ host, role }) {
       document.removeEventListener("keydown", handleKeyDown)
       window.removeEventListener("resize", handleResize)
     }
-  }, [mobileOpen])
+  }, [host, mobileOpen])
 
   return (
     <>
@@ -88,45 +77,49 @@ function SidebarApp({ host, role }) {
         <header className="ts-sidebar-header">
           <a className="ts-brand" href="/" aria-label="TimeStock overview">
             <span className="ts-brand-mark">
-              <img src="/images/TIMESTOCK_BG.png" alt="" />
+              <img src="/images/TIMESTOCK_BACK.png" alt="" />
             </span>
             <span className="ts-sidebar-copy ts-brand-copy">
               <strong>TimeStock</strong>
               <small>Inventory management</small>
             </span>
           </a>
-          <PanelLeftClose className="ts-collapse-hint" aria-hidden="true" />
         </header>
 
         <div className="ts-sidebar-divider" />
 
         <nav className="ts-sidebar-nav" aria-label="Primary navigation">
-          <p className="ts-sidebar-copy ts-nav-label">Workspace</p>
-          <ul>
-            {navigation.map((item, index) => {
-              const Icon = item.icon
-              const active = isCurrentRoute(item, currentPath)
+          {navigation.map((group) => (
+            <section className="ts-nav-group" aria-labelledby={`ts-nav-${group.id}`} key={group.id}>
+              <h2 className="ts-sidebar-copy ts-nav-label" id={`ts-nav-${group.id}`}>
+                {group.label}
+              </h2>
+              <ul>
+                {group.items.map((item) => {
+                  const Icon = item.icon
+                  const active = isCurrentRoute(item, currentPath)
 
-              return (
-                <li key={item.href}>
-                  <a
-                    ref={index === 0 ? firstLinkRef : undefined}
-                    className={`ts-nav-link${active ? " is-active" : ""}`}
-                    href={item.href}
-                    title={item.label}
-                    aria-current={active ? "page" : undefined}
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    <span className="ts-nav-icon">
-                      <Icon aria-hidden="true" />
-                    </span>
-                    <span className="ts-sidebar-copy ts-nav-text">{item.label}</span>
-                    {active && <span className="ts-active-dot" aria-hidden="true" />}
-                  </a>
-                </li>
-              )
-            })}
-          </ul>
+                  return (
+                    <li key={item.href}>
+                      <a
+                        ref={item.href === "/Home.html" ? firstLinkRef : undefined}
+                        className={`ts-nav-link${active ? " is-active" : ""}`}
+                        href={item.href}
+                        title={item.label}
+                        aria-current={active ? "page" : undefined}
+                        onClick={() => setMobileOpen(false)}
+                      >
+                        <span className="ts-nav-icon">
+                          <Icon aria-hidden="true" />
+                        </span>
+                        <span className="ts-sidebar-copy ts-nav-text">{item.label}</span>
+                      </a>
+                    </li>
+                  )
+                })}
+              </ul>
+            </section>
+          ))}
         </nav>
 
         <footer className="ts-sidebar-footer">
@@ -148,20 +141,27 @@ function SidebarApp({ host, role }) {
         </footer>
       </motion.div>
 
-      {createPortal(
-        <>
+      {layout && createPortal(
+        <div className="ts-mobile-nav-bar">
+          <span className="ts-mobile-nav-title">TimeStock <span>Navigation</span></span>
           <button
             ref={triggerRef}
             type="button"
             className="ts-sidebar-trigger"
-            aria-label={mobileOpen ? "Close navigation" : "Open navigation"}
+            aria-label={mobileOpen ? "Close navigation panel" : "Open navigation panel"}
             aria-controls={host.id}
             aria-expanded={mobileOpen}
             onClick={() => setMobileOpen((open) => !open)}
           >
-            {mobileOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
+            {mobileOpen ? <PanelLeftClose aria-hidden="true" /> : <PanelLeftOpen aria-hidden="true" />}
+            <span>{mobileOpen ? "Close panel" : "Open panel"}</span>
           </button>
+        </div>,
+        layout,
+      )}
 
+      {createPortal(
+        <>
           <AnimatePresence>
             {mobileOpen && (
               <motion.button

@@ -215,7 +215,7 @@
         .logo {
             width: 60px;
             height: 60px;
-            background: rgba(255, 255, 255, 0.2);
+            background: #b5e2ed;
             border-radius: 12px;
             display: flex;
             align-items: center;
@@ -229,7 +229,7 @@
         .logo-image {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
             border-radius: 10px;
         }
 

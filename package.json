@@ -6,7 +6,8 @@
   "author": "TimeStock Dev Team",
   "main": "electron/main.js",
   "scripts": {
-    "start": "electron .",
+    "start": "node start-web.js",
+    "desktop": "electron .",
     "package": "electron-forge package",
     "make": "electron-forge make"
   },

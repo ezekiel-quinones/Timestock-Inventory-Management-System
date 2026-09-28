@@ -41,16 +41,6 @@ body.ts-products-page * {
   border-color: hsl(var(--border));
 }
 
-.ts-products-shell {
-  display: grid;
-  grid-template-columns: 5.25rem minmax(0, 1fr);
-  width: 100%;
-  min-height: 100vh;
-  padding: 0;
-  margin: 0;
-  gap: 0;
-}
-
 .ts-products-main,
 #timestock-products-root,
 .products-app {
@@ -999,6 +989,51 @@ body.ts-products-page * {
   overflow-y: auto;
 }
 
+/* Keep the header and actions in view while long product/material forms scroll. */
+body:is(.ts-products-page, .ts-materials-page) .products-dialog {
+  display: flex !important;
+  flex-direction: column;
+  gap: 0 !important;
+  overflow: hidden;
+}
+
+body:is(.ts-products-page, .ts-materials-page) .products-dialog > div:first-child {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+}
+
+body:is(.ts-products-page, .ts-materials-page) .products-dialog-header {
+  flex: 0 0 auto;
+}
+
+body:is(.ts-products-page, .ts-materials-page) .products-dialog .products-form,
+body.ts-products-page .products-recipe-dialog .products-recipe-body {
+  min-width: 0;
+  min-height: 0;
+  flex: 1 1 auto;
+  align-content: start;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+}
+
+body:is(.ts-products-page, .ts-materials-page) .products-form > .products-dialog-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  padding: 0.85rem 1.2rem 1.2rem;
+  margin: 0 -1.2rem -1.2rem;
+  background: #fbfcfd;
+}
+
+body.ts-products-page .products-recipe-dialog > div > .products-dialog-footer {
+  flex: 0 0 auto;
+  padding: 0.85rem 1.2rem 1rem;
+  background: #fbfcfd;
+}
+
 .products-dialog[data-state="open"],
 .products-confirm-dialog[data-state="open"] {
   animation: products-dialog-in 220ms cubic-bezier(0.22, 1, 0.36, 1);
@@ -1171,6 +1206,8 @@ body.ts-products-page * {
 
 .products-confirm-dialog {
   padding: 1.25rem !important;
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
 }
 
 .products-confirm-dialog [role="alert"] {
@@ -1409,13 +1446,6 @@ body.ts-products-page [role="option"] {
 }
 
 @media (max-width: 768px) {
-  .ts-products-shell,
-  .ts-products-shell.ts-sidebar-layout {
-    grid-template-columns: minmax(0, 1fr) !important;
-    width: 100%;
-    max-width: 100%;
-  }
-
   .ts-products-main {
     width: 100%;
     max-width: 100%;
@@ -1429,7 +1459,7 @@ body.ts-products-page [role="option"] {
 
   .products-header-identity {
     min-height: 4.6rem;
-    padding: 0.58rem 0.75rem 0.58rem 4.65rem;
+    padding: 0.58rem 0.75rem;
   }
 
   .products-header-identity .products-eyebrow,
@@ -1600,12 +1630,41 @@ body.ts-products-page [role="option"] {
   }
 
   .products-pagination {
+    display: grid;
     width: 100%;
-    justify-content: space-between;
+    min-width: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
   }
 
   .products-pagination-pages {
-    overflow-x: auto;
+    grid-column: 1 / -1;
+    grid-row: 2;
+    min-width: 0;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.4rem;
+  }
+
+  .products-pagination > .products-button {
+    width: 100%;
+    min-width: 0;
+    min-height: 2.75rem;
+    height: auto;
+    font-size: 0.75rem;
+  }
+
+  .products-pagination > .products-button:last-child {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .products-pagination .products-page-button {
+    width: 2.75rem !important;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    height: 2.75rem;
+    font-size: 0.75rem;
   }
 
   .products-notifications-backdrop {
@@ -1701,18 +1760,6 @@ body.ts-products-page [role="option"] {
 
   .products-tabs-list [role="tab"] > svg {
     display: none;
-  }
-
-  .products-pagination > .products-button {
-    width: 2.2rem;
-    padding: 0 !important;
-    overflow: hidden;
-    font-size: 0;
-  }
-
-  .products-pagination > .products-button svg {
-    width: 0.95rem;
-    height: 0.95rem;
   }
 
   .products-dialog-footer .products-button {

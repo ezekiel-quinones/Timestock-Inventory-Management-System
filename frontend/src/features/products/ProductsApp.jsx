@@ -57,6 +57,7 @@ import {
 } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
+import DeleteFeedback from "@/components/DeleteFeedback"
 import { apiRequest, getProductCategories, getProducts, getProductSummary } from "./api"
 import ProductFormDialog from "./ProductFormDialog"
 import ProductsNotificationCenter from "./ProductsNotificationCenter"
@@ -615,7 +616,7 @@ function ProductsApp({ user }) {
   }
 
   async function deleteProduct() {
-    if (!deleteTarget) return
+    if (!deleteTarget || deleteBusy) return
     setDeleteBusy(true)
     setDeleteError("")
     try {
@@ -624,9 +625,14 @@ function ProductsApp({ user }) {
         { method: "DELETE" },
       )
       if (result?.success === false) throw new Error(result.message || "Product was not found.")
+      setProducts((current) => current?.filter((product) => product.product_id !== deleteTarget.product_id))
       setDeleteTarget(null)
-      notify("success", result?.message || "Product deleted.")
-      await refreshCatalog()
+      try {
+        await refreshCatalog()
+        notify("success", result?.message || "Product deleted.")
+      } catch {
+        notify("error", "Product deleted, but the catalog could not be refreshed. Reload the page to update totals.")
+      }
     } catch (error) {
       setDeleteError(error.message)
     } finally {
@@ -999,20 +1005,17 @@ function ProductsApp({ user }) {
             <span className="products-confirm-icon" aria-hidden="true">
               <Trash2 />
             </span>
-            <AlertDialogTitle>Delete this product permanently?</AlertDialogTitle>
+            <AlertDialogTitle>Delete {deleteTarget?.item_name || "this product"} permanently?</AlertDialogTitle>
             <AlertDialogDescription>
-              This hard delete removes the product, its material recipe, and linked order-item
-              records. Use the Unavailable status instead if the product may be needed for history.
+              Product ID: {deleteTarget?.product_id || "Not available"}. Confirming runs the deletion immediately.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          {deleteError && (
-            <Alert variant="destructive">
-              <AlertCircle aria-hidden="true" />
-              <AlertDescription>{deleteError}</AlertDescription>
-            </Alert>
-          )}
+          <DeleteFeedback
+            warning="The product, its material recipe, and any linked order items will be removed. Historical orders may lose their item details. This cannot be undone; use Unavailable instead if you need to keep that history."
+            error={deleteError}
+          />
           <AlertDialogFooter>
-            <AlertDialogCancel className="products-button products-button--neutral">
+            <AlertDialogCancel className="products-button products-button--neutral" disabled={deleteBusy}>
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction

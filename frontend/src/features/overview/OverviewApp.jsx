@@ -145,6 +145,12 @@ function getAlertMessages(alertGroups) {
   )
 }
 
+function cleanAlertMessage(message) {
+  return String(message || "")
+    .replace(/^[\s\u2139\u26a0\u2705\u26a1\u{1f536}\ufe0f]+/u, "")
+    .trim()
+}
+
 function extractAlertId(alert) {
   const directId =
     alert?.material_id ||
@@ -456,7 +462,7 @@ function NotificationCenter() {
                                   key={`${alert.message}-${index}`}
                                   onClick={() => selectAlert(alert)}
                                 >
-                                  <span>{alert.message}</span>
+                                  <span>{cleanAlertMessage(alert.message)}</span>
                                   <small>
                                     <Clock3 aria-hidden="true" />
                                     {alert.display_time || alert.timestamp || "Just now"}

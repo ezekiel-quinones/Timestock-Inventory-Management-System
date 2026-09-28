@@ -43,17 +43,6 @@ body.ts-analytics-page {
   text-rendering: optimizeLegibility;
 }
 
-.ts-analytics-shell,
-.ts-analytics-shell.ts-sidebar-layout {
-  display: grid !important;
-  grid-template-columns: 5.25rem minmax(0, 1fr) !important;
-  width: 100% !important;
-  min-height: 100vh;
-  padding: 0 !important;
-  margin: 0 !important;
-  gap: 0 !important;
-}
-
 .ts-analytics-main,
 #timestock-analytics-root,
 .analytics-app {
@@ -1332,11 +1321,6 @@ body.ts-analytics-page {
 }
 
 @media (max-width: 768px) {
-  .ts-analytics-shell,
-  .ts-analytics-shell.ts-sidebar-layout {
-    grid-template-columns: minmax(0, 1fr) !important;
-  }
-
   .analytics-header {
     min-height: 4.75rem;
     background: #f9fcfd;
@@ -1344,7 +1328,7 @@ body.ts-analytics-page {
   }
 
   .analytics-header-identity {
-    padding: 0.55rem 0.75rem 0.55rem 4.75rem;
+    padding: 0.55rem 0.75rem;
   }
 
   .analytics-header-identity .analytics-eyebrow,
