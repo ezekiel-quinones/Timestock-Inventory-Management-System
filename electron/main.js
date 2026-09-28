@@ -1,10 +1,13 @@
 const { app, BrowserWindow, dialog } = require('electron');
 const { spawn } = require('child_process');
+const { randomBytes } = require('crypto');
+const fs = require('fs');
 const path = require('path');
 const http = require('http');
 
 let serverProcess = null;
 let mainWindow = null;
+let backendError = null;
 
 const HOST = '127.0.0.1';
 const PORT = 8000;
@@ -35,6 +38,11 @@ function createWindow() {
 function waitForServer(url, retries = 30, interval = 500) {
   return new Promise((resolve, reject) => {
     const attempt = (remaining) => {
+      if (backendError) {
+        reject(backendError);
+        return;
+      }
+
       http.get(url, (res) => {
         res.resume();
         resolve();
@@ -52,19 +60,31 @@ function waitForServer(url, retries = 30, interval = 500) {
 }
 
 function getBackendCommand() {
+  const options = {
+    windowsHide: true,
+    stdio: 'inherit',
+    env: {
+      ...process.env,
+      SESSION_SECRET: process.env.SESSION_SECRET || randomBytes(32).toString('hex')
+    }
+  };
+
   if (app.isPackaged) {
     return {
       command: path.join(process.resourcesPath, 'backend.exe'),
       args: [],
-      options: {
-        windowsHide: true,
-        stdio: 'inherit'
-      }
+      options
     };
   }
 
+  const venvPython = path.join(
+    app.getAppPath(),
+    '.venv',
+    process.platform === 'win32' ? 'Scripts/python.exe' : 'bin/python'
+  );
+
   return {
-    command: 'python',
+    command: process.env.PYTHON || (fs.existsSync(venvPython) ? venvPython : 'python'),
     args: [
       '-m',
       'uvicorn',
@@ -75,8 +95,7 @@ function getBackendCommand() {
       String(PORT)
     ],
     options: {
-      shell: true,
-      stdio: 'inherit',
+      ...options,
       cwd: app.getAppPath()
     }
   };
@@ -91,11 +110,14 @@ function startFastAPIServer() {
 
   serverProcess.on('close', (code) => {
     console.log(`FastAPI server exited with code ${code}`);
+    if (!backendError) {
+      backendError = new Error(`Backend exited with code ${code}. Check the terminal output and the setup steps in README.md.`);
+    }
   });
 
   serverProcess.on('error', (err) => {
     console.error('Failed to start FastAPI server:', err);
-    dialog.showErrorBox('Backend Error', err.message);
+    backendError = new Error(`Could not start the backend (${err.message}). Follow the Python setup steps in README.md.`);
   });
 }
 
@@ -119,10 +141,7 @@ app.whenReady().then(async () => {
     });
   } catch (err) {
     console.error(err);
-    dialog.showErrorBox(
-      'Startup Error',
-      'The backend server failed to start.'
-    );
+    dialog.showErrorBox('Startup Error', err.message);
     app.quit();
   }
 });

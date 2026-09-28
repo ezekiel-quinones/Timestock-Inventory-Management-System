@@ -728,7 +728,7 @@ body.ts-orders-page {
   margin-top: 0.42rem;
 }
 
-.orders-glass-picker select {
+.orders-glass-picker .orders-glass-select {
   width: 100%;
   min-width: 0;
   height: 2rem;
@@ -744,13 +744,13 @@ body.ts-orders-page {
   cursor: pointer;
 }
 
-.orders-glass-picker select:focus-visible {
+.orders-glass-picker .orders-glass-select:focus-visible {
   border-color: #72b7c6;
   outline: 0;
   box-shadow: 0 0 0 3px rgba(22, 133, 168, 0.1);
 }
 
-.orders-glass-picker select:disabled {
+.orders-glass-picker .orders-glass-select:disabled {
   cursor: not-allowed;
   opacity: 0.7;
 }
@@ -1297,7 +1297,8 @@ body.ts-orders-page [role="listbox"] {
   .products-dialog.orders-document-dialog,
   .products-dialog.orders-quotation-dialog {
     width: calc(100% - 1rem) !important;
-    height: calc(100dvh - 1rem);
+    display: block !important;
+    height: auto;
     max-height: calc(100dvh - 1rem);
     overflow-y: auto;
   }
@@ -1323,13 +1324,6 @@ body.ts-orders-page [role="listbox"] {
 }
 
 @media (max-width: 768px) {
-  .ts-orders-shell,
-  .ts-orders-shell.ts-sidebar-layout {
-    grid-template-columns: minmax(0, 1fr) !important;
-    width: 100%;
-    max-width: 100%;
-  }
-
   .ts-orders-main {
     width: 100%;
     max-width: 100%;
@@ -1404,7 +1398,7 @@ body.ts-orders-page [role="listbox"] {
 
   .orders-price-grid input,
   .orders-used-quantity input,
-  .orders-glass-picker select,
+  .orders-glass-picker .orders-glass-select,
   .orders-customer-grid input,
   .orders-customer-grid textarea,
   .orders-customer-grid button {

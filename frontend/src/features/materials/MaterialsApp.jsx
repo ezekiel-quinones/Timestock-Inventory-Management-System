@@ -46,6 +46,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
+import DeleteFeedback from "@/components/DeleteFeedback"
 import {
   Table,
   TableBody,
@@ -728,7 +729,7 @@ function MaterialsApp({ user }) {
   }
 
   async function deleteMaterial() {
-    if (!deleteTarget) return
+    if (!deleteTarget || deleteBusy) return
     setDeleteBusy(true)
     setDeleteError("")
     try {
@@ -736,6 +737,8 @@ function MaterialsApp({ user }) {
         `/api/materials/${encodeURIComponent(deleteTarget.material_id)}`,
         { method: "DELETE" },
       )
+      if (result?.success === false) throw new Error(result.message || "Material was not found.")
+      setMaterials((current) => current?.filter((material) => material.material_id !== deleteTarget.material_id))
       setDeleteTarget(null)
       notify("success", result?.message || "Material deleted.")
       await refreshAfterMutation()
@@ -1227,20 +1230,17 @@ function MaterialsApp({ user }) {
         >
           <AlertDialogHeader>
             <span className="products-confirm-icon" aria-hidden="true"><Trash2 /></span>
-            <AlertDialogTitle>Delete this material permanently?</AlertDialogTitle>
+            <AlertDialogTitle>Delete {deleteTarget?.item_name || "this material"} permanently?</AlertDialogTitle>
             <AlertDialogDescription>
-              This hard delete removes {deleteTarget?.item_name || "the material"}, its item record,
-              linked product recipes, and linked stock transaction items. This cannot be undone.
+              Material ID: {deleteTarget?.material_id || "Not available"}. Confirming runs the deletion immediately.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          {deleteError && (
-            <Alert variant="destructive">
-              <AlertCircle aria-hidden="true" />
-              <AlertDescription>{deleteError}</AlertDescription>
-            </Alert>
-          )}
+          <DeleteFeedback
+            warning="The material and its item record, linked product recipes, and linked stock transaction items will be removed. This can affect historical stock records and cannot be undone."
+            error={deleteError}
+          />
           <AlertDialogFooter>
-            <AlertDialogCancel className="products-button products-button--neutral">Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="products-button products-button--neutral" disabled={deleteBusy}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               className="products-button products-button--danger"
               disabled={deleteBusy}

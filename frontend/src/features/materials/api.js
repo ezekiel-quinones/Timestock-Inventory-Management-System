@@ -35,6 +35,7 @@ export async function apiRequest(path, options = {}) {
     throw new Error(getErrorMessage(data, response.status))
   }
 
+  if (data?.success === false) throw new Error(getErrorMessage(data, response.status))
   return data
 }
 

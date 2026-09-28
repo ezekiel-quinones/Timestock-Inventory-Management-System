@@ -58,6 +58,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
+import DeleteFeedback from "@/components/DeleteFeedback"
 import {
   Table,
   TableBody,
@@ -1094,6 +1095,11 @@ function TransactionsApp({ user }) {
     setStatusTarget(order)
   }
 
+  function openDeleteDialog(order) {
+    setDeleteError("")
+    setDeleteTarget(order)
+  }
+
   async function submitStatusUpdate(event) {
     event.preventDefault()
     if (!statusTarget || !selectedStatus || selectedStatus === statusTarget.status_code) return
@@ -1114,11 +1120,12 @@ function TransactionsApp({ user }) {
   }
 
   async function confirmDeleteOrder() {
-    if (!deleteTarget) return
+    if (!deleteTarget || deleteBusy) return
     setDeleteBusy(true)
     setDeleteError("")
     try {
       const result = await deleteOrder(deleteTarget.transaction_id)
+      setOrderTransactions((current) => current?.filter((order) => order.transaction_id !== deleteTarget.transaction_id))
       setDeleteTarget(null)
       notify("success", result?.message || "Order deleted successfully.")
       const refreshed = await reloadOrders()
@@ -1320,7 +1327,7 @@ function TransactionsApp({ user }) {
                 onSort={sortByColumn}
                 onRetry={() => loadTransactions()}
                 onUpdate={openStatusDialog}
-                onDelete={(order) => setDeleteTarget(order)}
+                onDelete={openDeleteDialog}
               />
             </TabsContent>
 
@@ -1342,10 +1349,7 @@ function TransactionsApp({ user }) {
                 onSort={sortByColumn}
                 onRetry={() => loadTransactions()}
                 onUpdate={openStatusDialog}
-                onDelete={(order) => {
-                  setDeleteError("")
-                  setDeleteTarget(order)
-                }}
+                onDelete={openDeleteDialog}
               />
             </TabsContent>
 
@@ -1367,10 +1371,7 @@ function TransactionsApp({ user }) {
                 onSort={sortByColumn}
                 onRetry={() => loadTransactions()}
                 onUpdate={openStatusDialog}
-                onDelete={(order) => {
-                  setDeleteError("")
-                  setDeleteTarget(order)
-                }}
+                onDelete={openDeleteDialog}
               />
             </TabsContent>
           </Tabs>
@@ -1470,15 +1471,13 @@ function TransactionsApp({ user }) {
               <span className="products-confirm-icon" aria-hidden="true"><Trash2 /></span>
               <AlertDialogTitle>Delete this order permanently?</AlertDialogTitle>
               <AlertDialogDescription>
-                Order {displayValue(deleteTarget?.transaction_id, "record")} for {displayValue(deleteTarget?.customer_name, "this customer")} and its linked items will be removed. This cannot be undone.
+                Order {displayValue(deleteTarget?.transaction_id, "record")} for {displayValue(deleteTarget?.customer_name, "this customer")}. Confirming runs the deletion immediately.
               </AlertDialogDescription>
             </AlertDialogHeader>
-            {deleteError && (
-              <Alert variant="destructive">
-                <AlertCircle aria-hidden="true" />
-                <AlertDescription>{deleteError}</AlertDescription>
-              </Alert>
-            )}
+            <DeleteFeedback
+              warning="This order and its linked items will be removed permanently. Materials already used for the order will not be returned to stock. This cannot be undone."
+              error={deleteError}
+            />
             <AlertDialogFooter>
               <AlertDialogCancel className="products-button" disabled={deleteBusy}>Cancel</AlertDialogCancel>
               <AlertDialogAction

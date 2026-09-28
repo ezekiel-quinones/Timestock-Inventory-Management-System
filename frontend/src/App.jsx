@@ -94,12 +94,14 @@ function BrandMark({ compact = false }) {
   return (
     <div className="flex items-center gap-3">
       <div
-        className={`grid shrink-0 place-items-center overflow-hidden rounded-xl border border-white/45 bg-white/90 shadow-lg shadow-slate-950/10 ${
-          compact ? "h-11 w-11 p-1" : "h-14 w-14 p-1.5"
+        className={`grid shrink-0 place-items-center overflow-hidden rounded-xl ${
+          compact
+            ? "h-11 w-11 p-0.5"
+            : "h-14 w-14 border border-cyan-100/60 bg-[#b5e2ed] p-1 shadow-lg shadow-slate-950/10"
         }`}
       >
         <img
-          src={apiUrl("/images/TIMESTOCK_BG.png")}
+          src={apiUrl("/images/TIMESTOCK_BACK.png")}
           alt="TimeStock IMS"
           className="h-full w-full object-contain"
         />
@@ -138,7 +140,7 @@ function FeatureItem({ icon: Icon, title, description }) {
   )
 }
 
-function LoginForm({ onForgotPassword, notice }) {
+function LoginForm({ onForgotPassword, onAuthenticated, notice }) {
   const [showPassword, setShowPassword] = React.useState(false)
   const rememberedEmail = window.localStorage.getItem("timestock.rememberedEmail") || ""
   const form = useForm({
@@ -167,20 +169,6 @@ function LoginForm({ onForgotPassword, notice }) {
         }),
       })
 
-      if (response.redirected) {
-        if (values.remember) {
-          window.localStorage.setItem(
-            "timestock.rememberedEmail",
-            values.email.trim(),
-          )
-        } else {
-          window.localStorage.removeItem("timestock.rememberedEmail")
-        }
-
-        window.location.assign(response.url)
-        return
-      }
-
       if (!response.ok) {
         form.setError("root", {
           type: "server",
@@ -195,7 +183,21 @@ function LoginForm({ onForgotPassword, notice }) {
         return
       }
 
-      window.location.assign(apiUrl("/"))
+      if (response.redirected && new URL(response.url).pathname === "/login") {
+        form.setError("root", {
+          type: "server",
+          message: "Your session could not be started. Please try signing in again.",
+        })
+        return
+      }
+
+      if (values.remember) {
+        window.localStorage.setItem("timestock.rememberedEmail", values.email.trim())
+      } else {
+        window.localStorage.removeItem("timestock.rememberedEmail")
+      }
+
+      onAuthenticated(response.redirected ? response.url : apiUrl("/"))
     } catch {
       form.setError("root", {
         type: "network",
@@ -211,7 +213,7 @@ function LoginForm({ onForgotPassword, notice }) {
     <Form {...form}>
       <form
         noValidate
-        className="space-y-5"
+        className="space-y-4"
         onSubmit={form.handleSubmit(handleLogin)}
       >
         {notice && (
@@ -277,9 +279,9 @@ function LoginForm({ onForgotPassword, notice }) {
                   onClick={() => setShowPassword((visible) => !visible)}
                 >
                   {showPassword ? (
-                    <EyeOff className="h-[18px] w-[18px]" aria-hidden="true" />
-                  ) : (
                     <Eye className="h-[18px] w-[18px]" aria-hidden="true" />
+                  ) : (
+                    <EyeOff className="h-[18px] w-[18px]" aria-hidden="true" />
                   )}
                 </button>
               </div>
@@ -343,7 +345,7 @@ function LoginForm({ onForgotPassword, notice }) {
           )}
         </Button>
 
-        <div className="flex items-center justify-center gap-2 border-t border-slate-100 pt-4 text-xs text-slate-500">
+        <div className="login-assurance flex items-center justify-center gap-2 border-t border-slate-100 pt-3 text-xs text-slate-500">
           <ShieldCheck className="h-4 w-4 text-emerald-600" aria-hidden="true" />
           Protected account access with role-based permissions
         </div>
@@ -397,7 +399,7 @@ function ForgotPasswordForm({ onBack, onCodeSent }) {
     <Form {...form}>
       <form
         noValidate
-        className="space-y-5"
+        className="space-y-4"
         onSubmit={form.handleSubmit(handleResetRequest)}
       >
         <div className="rounded-lg border border-cyan-100 bg-cyan-50/70 p-4">
@@ -624,6 +626,14 @@ function App() {
   const [verificationOpen, setVerificationOpen] = React.useState(false)
   const [resetEmail, setResetEmail] = React.useState("")
   const [notice, setNotice] = React.useState("")
+  const [dashboardUrl, setDashboardUrl] = React.useState("")
+
+  React.useEffect(() => {
+    if (!dashboardUrl) return undefined
+
+    const timeout = window.setTimeout(() => window.location.assign(dashboardUrl), 1800)
+    return () => window.clearTimeout(timeout)
+  }, [dashboardUrl])
 
   const entrance = shouldReduceMotion
     ? { duration: 0 }
@@ -651,24 +661,24 @@ function App() {
 
   return (
     <MotionConfig reducedMotion="user">
-      <main className="auth-page min-h-dvh lg:grid lg:grid-cols-[minmax(0,1.1fr)_minmax(440px,0.9fr)]">
+      <main className="auth-page h-dvh overflow-hidden lg:grid lg:grid-cols-[minmax(0,1.1fr)_minmax(440px,0.9fr)]">
         <section
-          className="brand-panel relative hidden min-h-dvh overflow-hidden px-12 py-10 lg:flex lg:flex-col xl:px-16 xl:py-12"
+          className="brand-panel relative hidden h-full min-h-0 overflow-hidden px-10 py-7 lg:flex lg:flex-col xl:px-14 xl:py-9"
           aria-labelledby="brand-heading"
         >
           <div className="blueprint-frame blueprint-frame-one" aria-hidden="true" />
           <div className="blueprint-frame blueprint-frame-two" aria-hidden="true" />
 
           <motion.div
-            className="relative z-10 flex h-full flex-col"
+            className="relative z-10 flex h-full min-h-0 flex-col"
             initial={{ opacity: 0, x: shouldReduceMotion ? 0 : -24 }}
             animate={{ opacity: 1, x: 0 }}
             transition={entrance}
           >
             <BrandMark />
 
-            <div className="my-auto max-w-2xl py-14">
-              <div className="mb-6 inline-flex items-center rounded-full border border-cyan-200/20 bg-cyan-100/10 px-3 py-1.5 text-xs font-semibold text-cyan-50 backdrop-blur-md">
+            <div className="brand-story my-auto max-w-2xl py-6">
+              <div className="mb-4 inline-flex items-center rounded-full border border-cyan-200/20 bg-cyan-100/10 px-3 py-1.5 text-xs font-semibold text-cyan-50 backdrop-blur-md">
                 Your operations workspace
               </div>
               <h1
@@ -677,11 +687,11 @@ function App() {
               >
                 Keep every material in motion.
               </h1>
-              <p className="mt-5 max-w-xl text-base leading-7 text-slate-300 xl:text-lg xl:leading-8">
+              <p className="mt-4 max-w-xl text-base leading-7 text-slate-300 xl:text-lg xl:leading-8">
                 One clear view of stock, demand, and daily operations for glass and aluminum manufacturing teams.
               </p>
 
-              <div className="mt-10 grid max-w-xl gap-5 sm:grid-cols-2">
+              <div className="brand-features mt-7 grid max-w-xl gap-4 sm:grid-cols-2">
                 <FeatureItem
                   icon={Boxes}
                   title="Live inventory control"
@@ -705,7 +715,7 @@ function App() {
               </div>
             </div>
 
-            <div className="brand-glass flex max-w-xl items-center justify-between gap-5 rounded-xl border border-white/15 px-5 py-4 backdrop-blur-xl">
+            <div className="brand-footer brand-glass flex max-w-xl items-center justify-between gap-5 rounded-xl border border-white/15 px-4 py-3 backdrop-blur-xl">
               <div className="flex items-center gap-3">
                 <div className="grid h-9 w-9 place-items-center rounded-lg bg-emerald-300/15 text-emerald-200">
                   <ShieldCheck className="h-[18px] w-[18px]" aria-hidden="true" />
@@ -723,79 +733,112 @@ function App() {
           </motion.div>
         </section>
 
-        <section className="form-panel relative flex min-h-dvh items-center justify-center overflow-hidden px-4 py-7 sm:px-8 lg:px-10 lg:py-10">
+        <section className="form-panel relative flex h-full min-h-0 items-center justify-center overflow-x-hidden overflow-y-auto px-4 py-4 sm:px-8 lg:px-10 lg:py-6">
           <motion.div
-            className="relative z-10 w-full max-w-[470px]"
+            className="relative z-10 w-full max-w-[470px] shrink-0"
             initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ ...entrance, delay: shouldReduceMotion ? 0 : 0.08 }}
           >
-            <div className="mb-6 flex justify-center lg:hidden">
+            <div className="mb-3 flex justify-center lg:hidden">
               <BrandMark compact />
             </div>
 
             <Card className="border-slate-200/80 bg-white/95 shadow-auth backdrop-blur-xl">
-              <CardHeader className="space-y-2 px-5 pb-5 pt-6 sm:px-8 sm:pt-8">
-                <div className="mb-1 hidden h-10 w-10 place-items-center rounded-lg bg-cyan-50 text-[#126a8a] lg:grid">
-                  <LockKeyhole className="h-[19px] w-[19px]" aria-hidden="true" />
-                </div>
-                <CardTitle className="text-[1.7rem] tracking-[-0.03em] sm:text-3xl">
-                  Welcome back
-                </CardTitle>
-                <CardDescription className="text-sm leading-6">
-                  Sign in with your company account to continue to TimeStock IMS.
-                </CardDescription>
-              </CardHeader>
+              {dashboardUrl ? (
+                <CardContent className="px-5 py-8 sm:px-7 sm:py-10">
+                  <motion.div
+                    role="status"
+                    aria-live="polite"
+                    className="text-center"
+                    initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: shouldReduceMotion ? 0 : 0.25 }}
+                  >
+                    <div className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-2xl border border-emerald-200 bg-emerald-50 text-emerald-600">
+                      <CheckCircle2 className="h-8 w-8" aria-hidden="true" />
+                    </div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#126a8a]">
+                      Welcome to TimeStock
+                    </p>
+                    <h2 className="mt-2 font-display text-2xl font-semibold tracking-[-0.03em] text-slate-900">
+                      Signed in successfully
+                    </h2>
+                    <p className="mt-2 text-sm text-slate-600">Opening your dashboard...</p>
+                  </motion.div>
+                  <Button
+                    type="button"
+                    size="lg"
+                    className="mt-7 w-full bg-[#126a8a] hover:bg-[#0d5874]"
+                    onClick={() => window.location.assign(dashboardUrl)}
+                  >
+                    Open dashboard
+                    <ArrowRight aria-hidden="true" />
+                  </Button>
+                </CardContent>
+              ) : (
+                <>
+                  <CardHeader className="space-y-1 px-5 pb-3 pt-5 sm:px-7 sm:pt-6">
+                    <CardTitle className="text-2xl tracking-[-0.03em] sm:text-[1.65rem]">
+                      Welcome back
+                    </CardTitle>
+                    <CardDescription className="text-sm leading-5">
+                      Sign in with your company account to continue to TimeStock IMS.
+                    </CardDescription>
+                  </CardHeader>
 
-              <CardContent className="px-5 pb-6 sm:px-8 sm:pb-8">
-                <Tabs
-                  value={activeTab}
-                  onValueChange={(value) => {
-                    setNotice("")
-                    setActiveTab(value)
-                  }}
-                >
-                  <TabsList className="mb-5 grid w-full grid-cols-2 bg-slate-100/90">
-                    <TabsTrigger value="login">Sign in</TabsTrigger>
-                    <TabsTrigger value="forgot">Reset password</TabsTrigger>
-                  </TabsList>
+                  <CardContent className="px-5 pb-5 sm:px-7 sm:pb-6">
+                    <Tabs
+                      value={activeTab}
+                      onValueChange={(value) => {
+                        setNotice("")
+                        setActiveTab(value)
+                      }}
+                    >
+                      <TabsList className="mb-3 grid w-full grid-cols-2 bg-slate-100/90">
+                        <TabsTrigger value="login">Sign in</TabsTrigger>
+                        <TabsTrigger value="forgot">Reset password</TabsTrigger>
+                      </TabsList>
 
-                  <TabsContent value="login" className="mt-0">
-                    <AnimatePresence mode="wait">
-                      <motion.div
-                        key="login-form"
-                        initial={{ opacity: 0, x: shouldReduceMotion ? 0 : -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: shouldReduceMotion ? 0 : 0.25, ease: "easeOut" }}
-                      >
-                        <LoginForm
-                          onForgotPassword={showForgotPassword}
-                          notice={notice}
-                        />
-                      </motion.div>
-                    </AnimatePresence>
-                  </TabsContent>
+                      <TabsContent value="login" className="mt-0">
+                        <AnimatePresence mode="wait">
+                          <motion.div
+                            key="login-form"
+                            initial={{ opacity: 0, x: shouldReduceMotion ? 0 : -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: shouldReduceMotion ? 0 : 0.25, ease: "easeOut" }}
+                          >
+                            <LoginForm
+                              onForgotPassword={showForgotPassword}
+                              onAuthenticated={setDashboardUrl}
+                              notice={notice}
+                            />
+                          </motion.div>
+                        </AnimatePresence>
+                      </TabsContent>
 
-                  <TabsContent value="forgot" className="mt-0">
-                    <AnimatePresence mode="wait">
-                      <motion.div
-                        key="forgot-form"
-                        initial={{ opacity: 0, x: shouldReduceMotion ? 0 : 10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: shouldReduceMotion ? 0 : 0.25, ease: "easeOut" }}
-                      >
-                        <ForgotPasswordForm
-                          onBack={showLogin}
-                          onCodeSent={handleCodeSent}
-                        />
-                      </motion.div>
-                    </AnimatePresence>
-                  </TabsContent>
-                </Tabs>
-              </CardContent>
+                      <TabsContent value="forgot" className="mt-0">
+                        <AnimatePresence mode="wait">
+                          <motion.div
+                            key="forgot-form"
+                            initial={{ opacity: 0, x: shouldReduceMotion ? 0 : 10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: shouldReduceMotion ? 0 : 0.25, ease: "easeOut" }}
+                          >
+                            <ForgotPasswordForm
+                              onBack={showLogin}
+                              onCodeSent={handleCodeSent}
+                            />
+                          </motion.div>
+                        </AnimatePresence>
+                      </TabsContent>
+                    </Tabs>
+                  </CardContent>
+                </>
+              )}
             </Card>
 
-            <p className="mt-5 text-center text-xs leading-5 text-slate-500">
+            <p className="auth-footer mt-3 text-center text-xs leading-5 text-slate-500">
               TimeStock IMS · Glass and aluminum inventory operations
             </p>
           </motion.div>

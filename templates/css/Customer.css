@@ -52,14 +52,6 @@ body {
     color: var(--color-dark);
 }
 
-.container {
-    display: grid;
-    width: 100%;
-    gap: 1.8rem;
-    grid-template-columns: 5rem auto;
-    padding: 0 1.5rem;
-}
-
 a {
     color: var(--color-dark);
 }

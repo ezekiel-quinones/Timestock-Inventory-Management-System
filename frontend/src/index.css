@@ -38,7 +38,7 @@
   body {
     @apply m-0 bg-background font-sans text-foreground antialiased;
     min-width: 320px;
-    min-height: 100vh;
+    min-height: 100dvh;
   }
 
   button,
@@ -134,6 +134,8 @@
 }
 
 .form-panel {
+  align-items: safe center;
+  overscroll-behavior-y: contain;
   background:
     radial-gradient(circle at 92% 5%, rgba(113, 201, 218, 0.15), transparent 21rem),
     radial-gradient(circle at 4% 96%, rgba(168, 201, 215, 0.15), transparent 19rem),
@@ -159,9 +161,41 @@
   }
 }
 
-@media (max-width: 420px) {
+@media (max-height: 760px) {
+  .auth-footer {
+    display: none;
+  }
+}
+
+@media (max-height: 820px) and (min-width: 1024px) {
+  .brand-panel {
+    padding-block: 1.5rem;
+  }
+
+  .brand-story {
+    padding-block: 1rem;
+  }
+
+  .brand-features {
+    margin-top: 1.25rem;
+    gap: 0.75rem;
+  }
+}
+
+@media (max-height: 640px) {
   .form-panel {
-    align-items: flex-start;
+    padding-block: 0.75rem;
+  }
+
+  .login-assurance {
+    display: none;
+  }
+}
+
+@media (max-height: 640px) and (min-width: 1024px) {
+  .brand-features,
+  .brand-footer {
+    display: none;
   }
 }
 

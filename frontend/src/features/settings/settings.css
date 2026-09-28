@@ -43,17 +43,6 @@ body.ts-settings-page {
   text-rendering: optimizeLegibility;
 }
 
-.ts-settings-shell,
-.ts-settings-shell.ts-sidebar-layout {
-  display: grid !important;
-  grid-template-columns: 5.25rem minmax(0, 1fr) !important;
-  width: 100% !important;
-  min-height: 100vh;
-  padding: 0 !important;
-  margin: 0 !important;
-  gap: 0 !important;
-}
-
 .ts-settings-main,
 #timestock-settings-root,
 .settings-app {
@@ -683,6 +672,12 @@ body.ts-settings-page {
   padding: 1.15rem;
 }
 
+.settings-retention-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
 .settings-retention-copy p {
   margin-top: 0.25rem !important;
   color: #6b818c;
@@ -1304,7 +1299,17 @@ body.ts-settings-page {
 
 .settings-confirm-dialog {
   max-width: 30rem !important;
+  max-height: calc(100dvh - 2rem);
   padding: 1.25rem !important;
+  overflow-y: auto;
+}
+
+.settings-delete-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  color: #496674;
+  font-size: 0.75rem;
 }
 
 .settings-confirm-dialog [role="heading"] {
@@ -1465,9 +1470,8 @@ body.ts-settings-page {
     grid-template-columns: auto minmax(0, 1fr) 8rem;
   }
 
-  .settings-retention-control > .settings-button {
+  .settings-retention-actions {
     grid-column: 2 / -1;
-    width: max-content;
   }
 }
 
@@ -1562,13 +1566,6 @@ body.ts-settings-page {
 }
 
 @media (max-width: 768px) {
-  .ts-settings-shell,
-  .ts-settings-shell.ts-sidebar-layout {
-    grid-template-columns: minmax(0, 1fr) !important;
-    width: 100% !important;
-    max-width: 100%;
-  }
-
   .ts-settings-main {
     width: 100%;
     max-width: 100%;
@@ -1582,7 +1579,7 @@ body.ts-settings-page {
 
   .settings-header-identity {
     min-height: 4.6rem;
-    padding: 0.58rem 0.75rem 0.58rem 4.65rem;
+    padding: 0.58rem 0.75rem;
   }
 
   .settings-header-identity .settings-eyebrow,
@@ -1657,8 +1654,12 @@ body.ts-settings-page {
     grid-column: 1 / -1;
   }
 
-  .settings-retention-control > .settings-button {
+  .settings-retention-actions {
     grid-column: 1 / -1;
+    flex-direction: column;
+  }
+
+  .settings-retention-actions .settings-button {
     width: 100%;
   }
 
@@ -1677,7 +1678,41 @@ body.ts-settings-page {
   }
 
   .settings-pagination {
-    justify-content: space-between;
+    display: grid;
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+  }
+
+  .settings-pagination-pages {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    min-width: 0;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.4rem;
+  }
+
+  .settings-pagination > .settings-button {
+    width: 100%;
+    min-width: 0;
+    min-height: 2.75rem;
+    height: auto;
+    font-size: 0.75rem;
+  }
+
+  .settings-pagination > .settings-button:last-child {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .settings-pagination .settings-page-button {
+    width: 2.75rem;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    height: 2.75rem;
+    font-size: 0.75rem;
   }
 
   .settings-notifications-backdrop {
@@ -1736,18 +1771,6 @@ body.ts-settings-page {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .settings-pagination > .settings-button {
-    width: 2.2rem;
-    padding: 0 !important;
-    overflow: hidden;
-    font-size: 0;
-  }
-
-  .settings-pagination > .settings-button svg {
-    width: 0.95rem;
-    height: 0.95rem;
-  }
-
   .settings-form-grid {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -1759,7 +1782,7 @@ body.ts-settings-page {
 
 @media (max-width: 420px) {
   .settings-header-identity {
-    padding-left: 4.35rem;
+    padding-left: 0.75rem;
   }
 
   .settings-header-identity h1 {

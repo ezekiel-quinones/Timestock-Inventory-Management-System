@@ -3,6 +3,23 @@
   box-sizing: border-box;
 }
 
+.ts-app-shell {
+  --ts-sidebar-width: 84px;
+  --ts-sidebar-expanded-width: 264px;
+  display: grid !important;
+  grid-template-columns: var(--ts-sidebar-width) minmax(0, 1fr) !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-height: 100vh;
+  padding: 0 !important;
+  margin: 0 !important;
+  gap: 0 !important;
+}
+
+.ts-app-shell > main {
+  min-width: 0 !important;
+}
+
 #timestock-sidebar-root {
   --ts-sidebar-cyan: #62d0df;
   --ts-sidebar-cyan-soft: #b7edf3;
@@ -14,9 +31,9 @@
   z-index: 1200 !important;
   display: block !important;
   align-self: start !important;
-  width: 5.25rem !important;
-  min-width: 5.25rem !important;
-  max-width: 5.25rem !important;
+  width: var(--ts-sidebar-width, 84px) !important;
+  min-width: var(--ts-sidebar-width, 84px) !important;
+  max-width: var(--ts-sidebar-width, 84px) !important;
   height: 100vh !important;
   min-height: 100vh !important;
   overflow: hidden !important;
@@ -36,8 +53,8 @@
 
 #timestock-sidebar-root:hover,
 #timestock-sidebar-root:focus-within {
-  width: 16.5rem !important;
-  max-width: 16.5rem !important;
+  width: var(--ts-sidebar-expanded-width, 264px) !important;
+  max-width: var(--ts-sidebar-expanded-width, 264px) !important;
   border-right: 1px solid rgba(98, 208, 223, 0.28) !important;
   box-shadow: 18px 0 45px rgba(4, 25, 40, 0.2) !important;
 }
@@ -56,19 +73,10 @@
   mask-image: linear-gradient(to bottom, black, transparent 72%);
 }
 
-.ts-sidebar-layout {
-  padding-left: 0 !important;
-  grid-template-columns: 5.25rem minmax(0, 1fr) !important;
-}
-
-.ts-sidebar-layout > main {
-  min-width: 0 !important;
-}
-
 #timestock-sidebar-root .ts-sidebar-surface {
   display: flex;
   flex-direction: column;
-  width: 16.5rem;
+  width: var(--ts-sidebar-expanded-width, 264px);
   height: 100%;
   min-height: 0;
 }
@@ -97,10 +105,10 @@
   width: 2.75rem;
   height: 2.75rem;
   place-items: center;
-  padding: 0.22rem;
+  padding: 0.16rem;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.93);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: #b5e2ed;
+  border: 1px solid rgba(194, 236, 244, 0.8);
   border-radius: 0.75rem;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.16);
 }
@@ -137,21 +145,6 @@
   text-transform: uppercase;
 }
 
-#timestock-sidebar-root .ts-collapse-hint {
-  position: absolute;
-  right: 0.85rem;
-  width: 1rem;
-  height: 1rem;
-  color: #7293a2;
-  opacity: 0;
-  transition: opacity 160ms ease;
-}
-
-#timestock-sidebar-root:hover .ts-collapse-hint,
-#timestock-sidebar-root:focus-within .ts-collapse-hint {
-  opacity: 0.85;
-}
-
 #timestock-sidebar-root .ts-sidebar-divider {
   flex: 0 0 auto;
   height: 1px;
@@ -179,14 +172,27 @@
 }
 
 #timestock-sidebar-root .ts-nav-label {
-  height: 1.35rem;
-  margin: 0 1.2rem 0.45rem;
+  height: 0;
+  margin: 0 1.2rem;
+  overflow: hidden;
   color: #718f9e;
   font-size: 0.61rem;
   font-weight: 600;
   line-height: 1.35rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
+}
+
+#timestock-sidebar-root .ts-nav-group + .ts-nav-group {
+  padding-top: 0.6rem;
+  margin-top: 0.6rem;
+  border-top: 1px solid rgba(145, 201, 212, 0.13);
+}
+
+#timestock-sidebar-root:hover .ts-nav-label,
+#timestock-sidebar-root:focus-within .ts-nav-label {
+  height: 1.35rem;
+  margin-bottom: 0.45rem;
 }
 
 #timestock-sidebar-root .ts-sidebar-nav ul {
@@ -208,7 +214,7 @@
 #timestock-sidebar-root .ts-signout {
   position: relative;
   display: grid;
-  grid-template-columns: 2.75rem minmax(0, 1fr) 0.5rem;
+  grid-template-columns: 2.75rem minmax(0, 1fr);
   align-items: center;
   width: calc(100% - 1.25rem);
   height: 2.85rem;
@@ -273,14 +279,6 @@
   line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-#timestock-sidebar-root .ts-active-dot {
-  width: 0.32rem;
-  height: 0.32rem;
-  background: var(--ts-sidebar-cyan);
-  border-radius: 50%;
-  box-shadow: 0 0 0 3px rgba(98, 208, 223, 0.12);
 }
 
 #timestock-sidebar-root .ts-sidebar-copy {
@@ -381,24 +379,26 @@
   transform: translateY(0);
 }
 
-.ts-sidebar-trigger,
+.ts-mobile-nav-bar,
 .ts-sidebar-overlay {
   display: none;
 }
 
 @media (max-width: 768px) {
+  body {
+    --ts-mobile-bar-height: 3.75rem;
+  }
+
   body.ts-sidebar-open {
     overflow: hidden !important;
   }
 
-  .ts-sidebar-layout {
-    display: grid !important;
+  .ts-app-shell {
     grid-template-columns: minmax(0, 1fr) !important;
-    width: 100% !important;
-    max-width: 100% !important;
   }
 
-  .ts-sidebar-layout > main {
+  .ts-app-shell > main {
+    grid-row: 2;
     width: 100% !important;
     max-width: 100% !important;
     margin-left: 0 !important;
@@ -408,14 +408,14 @@
   #timestock-sidebar-root:hover,
   #timestock-sidebar-root:focus-within {
     position: fixed !important;
-    top: 0 !important;
+    top: var(--ts-mobile-bar-height) !important;
     left: 0 !important;
     z-index: 12001 !important;
     width: min(18rem, calc(100vw - 4rem)) !important;
     min-width: min(18rem, calc(100vw - 4rem)) !important;
     max-width: min(18rem, calc(100vw - 4rem)) !important;
-    height: 100dvh !important;
-    min-height: 100dvh !important;
+    height: calc(100dvh - var(--ts-mobile-bar-height)) !important;
+    min-height: 0 !important;
     border-right: 1px solid rgba(98, 208, 223, 0.26) !important;
     box-shadow: 22px 0 55px rgba(3, 20, 33, 0.32) !important;
     transform: translateX(-105%);
@@ -431,11 +431,7 @@
   }
 
   #timestock-sidebar-root .ts-sidebar-header {
-    padding-left: 4.2rem;
-  }
-
-  #timestock-sidebar-root .ts-collapse-hint {
-    display: none;
+    padding-left: 1rem;
   }
 
   #timestock-sidebar-root .ts-sidebar-copy {
@@ -444,24 +440,59 @@
     transform: none;
   }
 
-  .ts-sidebar-trigger {
-    position: fixed;
-    top: 1rem;
-    left: 1rem;
+  #timestock-sidebar-root .ts-nav-label {
+    height: 1.35rem;
+    margin-bottom: 0.45rem;
+  }
+
+  .ts-mobile-nav-bar {
+    position: sticky;
+    top: 0;
     z-index: 12002;
-    display: grid;
-    width: 2.75rem;
-    height: 2.75rem;
-    padding: 0;
-    place-items: center;
-    color: #0d4963;
-    background: rgba(255, 255, 255, 0.96);
-    border: 1px solid rgba(22, 107, 139, 0.2);
-    border-radius: 0.75rem;
-    box-shadow: 0 8px 24px rgba(7, 37, 58, 0.16);
+    display: flex;
+    grid-row: 1;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    min-width: 0;
+    min-height: var(--ts-mobile-bar-height);
+    padding: 0.4rem 0.85rem;
+    color: #e9f7f9;
+    background: #0b2a42;
+    border-bottom: 1px solid rgba(136, 202, 215, 0.28);
+  }
+
+  .ts-mobile-nav-title {
+    font-family: "Poppins", "Segoe UI", sans-serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .ts-mobile-nav-title span {
+    margin-left: 0.35rem;
+    color: #a2c3cf;
+    font-family: "Open Sans", "Segoe UI", sans-serif;
+    font-size: 0.72rem;
+    font-weight: 500;
+  }
+
+  .ts-sidebar-trigger {
+    display: inline-flex;
+    min-height: 2.75rem;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.65rem;
+    color: #ecfbfd;
+    font-size: 0.73rem;
+    font-weight: 600;
+    background: rgba(98, 208, 223, 0.14);
+    border: 1px solid rgba(157, 228, 238, 0.35);
+    border-radius: 0.65rem;
     outline: none;
     cursor: pointer;
-    backdrop-filter: blur(12px);
     transition:
       color 180ms ease,
       background-color 180ms ease,
@@ -469,14 +500,14 @@
   }
 
   .ts-sidebar-trigger:hover {
-    color: #082b3d;
-    background: white;
-    border-color: rgba(22, 107, 139, 0.4);
+    color: white;
+    background: rgba(98, 208, 223, 0.24);
+    border-color: rgba(157, 228, 238, 0.6);
   }
 
   .ts-sidebar-trigger:focus-visible {
-    outline: 2px solid #1685a8;
-    outline-offset: 3px;
+    outline: 2px solid #b7edf3;
+    outline-offset: 2px;
   }
 
   .ts-sidebar-trigger svg {
@@ -486,11 +517,11 @@
 
   .ts-sidebar-overlay {
     position: fixed;
-    inset: 0;
+    inset: var(--ts-mobile-bar-height) 0 0;
     z-index: 12000;
     display: block;
     width: 100%;
-    height: 100%;
+    height: calc(100dvh - var(--ts-mobile-bar-height));
     padding: 0;
     background: rgba(3, 19, 31, 0.56);
     border: 0;
@@ -499,9 +530,16 @@
   }
 }
 
+@media (max-width: 380px) {
+  .ts-mobile-nav-title span {
+    display: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   #timestock-sidebar-root,
   #timestock-sidebar-root *,
+  .ts-mobile-nav-bar,
   .ts-sidebar-trigger,
   .ts-sidebar-overlay {
     scroll-behavior: auto !important;

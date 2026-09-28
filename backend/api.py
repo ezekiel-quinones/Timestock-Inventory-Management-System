@@ -523,8 +523,13 @@ def delete_material(id: str, request: Request):
     if not user or user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="Admin privileges required")
 
-    database.delete_material(id, admin_id=user["id"])
-    return {"message": "Deleted successfully"}
+    try:
+        result = database.delete_material(id, admin_id=user["id"])
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    if not result["success"]:
+        raise HTTPException(status_code=404, detail=result["message"])
+    return result
 
 
 # --- Customers ---
@@ -603,11 +608,14 @@ def delete_product(request: Request, id: str):
     try:
         # try with admin_id if DB was updated
         try:
-            return database.delete_product(id, admin_id=user["id"])
+            result = database.delete_product(id, admin_id=user["id"])
         except TypeError:
-            return database.delete_product(id)
+            result = database.delete_product(id)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+    if not result["success"]:
+        raise HTTPException(status_code=404, detail=result["message"])
+    return result
 
 
 # --- Suppliers ---
@@ -732,7 +740,11 @@ def read_order_transactions():
 
 
 @router.delete("/orders/{transaction_id}")
-def delete_order_route(transaction_id: str):
+def delete_order_route(transaction_id: str, request: Request):
+    user = request.session.get("user")
+    if not user or user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+
     try:
         result = database.delete_order_transaction(transaction_id)
         return result
@@ -1030,7 +1042,10 @@ def api_change_employee_password(
 
 @router.get("/maintenance/preview-delete/{years}")
 def preview_transactions_to_delete(years: int, current_admin = Depends(database.get_current_admin)):
-    result = database.delete_old_transactions(years, admin_id=current_admin["id"], dry_run=True)
+    try:
+        result = database.delete_old_transactions(years, admin_id=current_admin["id"], dry_run=True)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     total = (
         result.get("old_order_items", 0)
         + result.get("old_orders", 0)

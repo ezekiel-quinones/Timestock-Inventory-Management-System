@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import DeleteFeedback from "@/components/DeleteFeedback"
 import {
   Select,
   SelectContent,
@@ -73,6 +74,7 @@ function RecipeDialog({ open, onOpenChange, products, onNotify }) {
   const [busyAction, setBusyAction] = React.useState("")
   const [error, setError] = React.useState("")
   const [deleteTarget, setDeleteTarget] = React.useState(null)
+  const [deleteError, setDeleteError] = React.useState("")
   const reduceMotion = useReducedMotion()
 
   const availableProducts = products.filter((product) => product.status === "Available")
@@ -249,10 +251,10 @@ function RecipeDialog({ open, onOpenChange, products, onNotify }) {
   }
 
   async function deleteExistingMaterial() {
-    if (!deleteTarget) return
+    if (!deleteTarget || busyAction) return
 
     setBusyAction(deleteTarget.clientId)
-    setError("")
+    setDeleteError("")
     try {
       const params = new URLSearchParams({
         product_id: selectedProductId,
@@ -261,11 +263,11 @@ function RecipeDialog({ open, onOpenChange, products, onNotify }) {
       const result = await apiRequest(`/api/product-materials/delete?${params}`, {
         method: "DELETE",
       })
+      setEntries((current) => current.filter((entry) => entry.clientId !== deleteTarget.clientId))
       setDeleteTarget(null)
       await finishMutation(result?.message || "Product material was removed.")
     } catch (requestError) {
-      setDeleteTarget(null)
-      setError(requestError.message)
+      setDeleteError(requestError.message || "The material could not be removed from the recipe.")
     } finally {
       setBusyAction("")
     }
@@ -473,7 +475,10 @@ function RecipeDialog({ open, onOpenChange, products, onNotify }) {
                                 size="sm"
                                 className="products-button products-button--danger"
                                 disabled={Boolean(busyAction)}
-                                onClick={() => setDeleteTarget(entry)}
+                                 onClick={() => {
+                                   setDeleteError("")
+                                   setDeleteTarget(entry)
+                                 }}
                               >
                                 <Trash2 />
                                 Delete
@@ -533,7 +538,15 @@ function RecipeDialog({ open, onOpenChange, products, onNotify }) {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={Boolean(deleteTarget)} onOpenChange={(next) => !next && setDeleteTarget(null)}>
+      <AlertDialog
+        open={Boolean(deleteTarget)}
+        onOpenChange={(next) => {
+          if (!next && !busyAction) {
+            setDeleteTarget(null)
+            setDeleteError("")
+          }
+        }}
+      >
         <AlertDialogContent
           overlayClassName="products-confirm-overlay"
           className="products-confirm-dialog"
@@ -544,12 +557,15 @@ function RecipeDialog({ open, onOpenChange, products, onNotify }) {
             </span>
             <AlertDialogTitle>Remove this material?</AlertDialogTitle>
             <AlertDialogDescription>
-              This removes the material from this product recipe. It does not delete the material
-              from inventory.
+              Confirming removes this material from the selected product recipe immediately.
             </AlertDialogDescription>
           </AlertDialogHeader>
+          <DeleteFeedback
+            warning="Only the recipe link will be removed; the material remains in inventory. The product's estimated material cost may change. This cannot be undone without adding the material back."
+            error={deleteError}
+          />
           <AlertDialogFooter>
-            <AlertDialogCancel className="products-button products-button--neutral">
+            <AlertDialogCancel className="products-button products-button--neutral" disabled={Boolean(busyAction)}>
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
@@ -561,7 +577,7 @@ function RecipeDialog({ open, onOpenChange, products, onNotify }) {
               }}
             >
               {busyAction ? <LoaderCircle className="animate-spin" /> : <Trash2 />}
-              Remove material
+              {busyAction ? "Removing..." : "Remove material"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

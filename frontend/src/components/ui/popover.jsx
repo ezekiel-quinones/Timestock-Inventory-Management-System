@@ -13,9 +13,11 @@ const PopoverContent = React.forwardRef(
       <PopoverPrimitive.Content
         ref={ref}
         align={align}
+        side="bottom"
         sideOffset={sideOffset}
+        avoidCollisions={false}
         className={cn(
-          "z-[14002] w-72 rounded-md border bg-popover p-2 text-popover-foreground shadow-lg outline-none",
+          "z-[14002] max-h-[min(20rem,var(--radix-popover-content-available-height))] w-72 overflow-y-auto overscroll-contain rounded-md border bg-popover p-2 text-popover-foreground shadow-lg outline-none",
           className,
         )}
         {...props}

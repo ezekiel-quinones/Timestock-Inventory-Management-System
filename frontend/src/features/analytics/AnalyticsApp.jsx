@@ -391,7 +391,7 @@ function RecommendationItem({ value }) {
 function StlRecommendations({ confidence, flatRecommendations, groupedRecommendations, reduceMotion }) {
   const groups = Array.isArray(groupedRecommendations) && groupedRecommendations.length > 0
     ? groupedRecommendations
-    : [{ month: "Forecast guidance", recs: flatRecommendations || [] }]
+    : [{ month: "Latest month", recs: flatRecommendations || [] }]
   const [expanded, setExpanded] = React.useState(() => new Set(groups[0]?.month ? [groups[0].month] : []))
 
   React.useEffect(() => {
@@ -423,7 +423,7 @@ function StlRecommendations({ confidence, flatRecommendations, groupedRecommenda
           <div>
             <span className="analytics-eyebrow">STL guidance</span>
             <h2>Order demand outlook</h2>
-            <p>Trend, seasonality, and variability signals grouped by forecast month.</p>
+            <p>Trend, seasonality, and variability guidance for the latest recorded month.</p>
           </div>
         </div>
 
@@ -762,7 +762,7 @@ function AnalyticsApp({ initialSnapshot, user }) {
           <div className="analytics-section-heading">
             <div>
               <span className="analytics-eyebrow">Demand decomposition</span>
-              <h2 id="demand-forecast-title">Monthly order forecast signals</h2>
+              <h2 id="demand-forecast-title">Monthly order demand signals</h2>
               <p>Separate long-term trend, recurring seasonality, and irregular demand shifts.</p>
             </div>
           </div>

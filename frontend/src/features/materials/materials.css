@@ -343,9 +343,7 @@ body.ts-materials-page [role="listbox"] {
 }
 
 .materials-bulk-form {
-  max-height: calc(100dvh - 9rem);
-  overflow-y: auto;
-  scrollbar-width: thin;
+  min-width: 0;
 }
 
 .materials-stock-section {
@@ -468,13 +466,6 @@ body.ts-materials-page [role="listbox"] {
 }
 
 @media (max-width: 768px) {
-  .ts-materials-shell,
-  .ts-materials-shell.ts-sidebar-layout {
-    grid-template-columns: minmax(0, 1fr) !important;
-    width: 100%;
-    max-width: 100%;
-  }
-
   .ts-materials-main {
     width: 100%;
     max-width: 100%;
@@ -508,10 +499,6 @@ body.ts-materials-page [role="listbox"] {
   .materials-bulk-dialog {
     width: calc(100% - 1rem) !important;
     max-height: calc(100dvh - 1rem);
-  }
-
-  .materials-bulk-form {
-    max-height: none;
   }
 
   .materials-glass-grid,

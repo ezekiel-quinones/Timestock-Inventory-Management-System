@@ -53,6 +53,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import DeleteFeedback from "@/components/DeleteFeedback"
 
 import {
   CreateAdminDialog,
@@ -322,6 +323,21 @@ function MaintenancePanel({ onAuditRefresh, onNotify, reduceMotion }) {
       getCount(preview, "stockItems")
     : 0
 
+  async function loadPreview(retentionYears) {
+    const data = await previewOldTransactions(retentionYears)
+    return {
+      years: retentionYears,
+      cutoffDate: data?.cutoff_date || "",
+      message: data?.message || "",
+      counts: {
+        orders: Number(data?.old_orders) || 0,
+        orderItems: Number(data?.old_order_items) || 0,
+        stocks: Number(data?.old_stocks) || 0,
+        stockItems: Number(data?.old_stock_items) || 0,
+      },
+    }
+  }
+
   async function runPreview() {
     const retentionYears = Number(years)
     if (!Number.isInteger(retentionYears) || retentionYears < 5) {
@@ -333,18 +349,7 @@ function MaintenancePanel({ onAuditRefresh, onNotify, reduceMotion }) {
     setPreviewLoading(true)
     setPreviewError("")
     try {
-      const data = await previewOldTransactions(retentionYears)
-      setPreview({
-        years: retentionYears,
-        cutoffDate: data?.cutoff_date || "",
-        message: data?.message || "",
-        counts: {
-          orders: Number(data?.old_orders) || 0,
-          orderItems: Number(data?.old_order_items) || 0,
-          stocks: Number(data?.old_stocks) || 0,
-          stockItems: Number(data?.old_stock_items) || 0,
-        },
-      })
+      setPreview(await loadPreview(retentionYears))
     } catch (error) {
       setPreview(null)
       setPreviewError(error.message)
@@ -353,26 +358,49 @@ function MaintenancePanel({ onAuditRefresh, onNotify, reduceMotion }) {
     }
   }
 
+  async function openDeleteDialog() {
+    setConfirmOpen(true)
+    setPreview(null)
+    setDeleteError("")
+    const retentionYears = Number(years)
+    if (!Number.isInteger(retentionYears) || retentionYears < 5) {
+      setDeleteError("Enter a whole number of at least 5 years.")
+      return
+    }
+
+    setPreviewLoading(true)
+    try {
+      setPreview(await loadPreview(retentionYears))
+    } catch (error) {
+      setDeleteError(error.message)
+    } finally {
+      setPreviewLoading(false)
+    }
+  }
+
   async function confirmDelete(event) {
     event.preventDefault()
-    if (!preview || total === 0) return
+    if (!preview || total === 0 || deleteBusy) return
 
     setDeleteBusy(true)
     setDeleteError("")
     try {
       const archive = await deleteOldTransactions(preview.years)
-      const url = window.URL.createObjectURL(archive.blob)
-      const link = document.createElement("a")
-      link.href = url
-      link.download = archive.filename
-      document.body.appendChild(link)
-      link.click()
-      link.remove()
-      window.setTimeout(() => window.URL.revokeObjectURL(url), 1000)
-
       setConfirmOpen(false)
       setPreview(null)
-      onNotify("Old transactions were deleted and the CSV archive was downloaded.")
+      try {
+        const url = window.URL.createObjectURL(archive.blob)
+        const link = document.createElement("a")
+        link.href = url
+        link.download = archive.filename
+        document.body.appendChild(link)
+        link.click()
+        link.remove()
+        window.setTimeout(() => window.URL.revokeObjectURL(url), 1000)
+        onNotify("Old transactions were deleted and the CSV archive was downloaded.")
+      } catch {
+        onNotify("Records were deleted, but the CSV archive could not be downloaded.", "error")
+      }
       onAuditRefresh()
     } catch (error) {
       setDeleteError(error.message)
@@ -398,7 +426,7 @@ function MaintenancePanel({ onAuditRefresh, onNotify, reduceMotion }) {
       <SectionHeading
         eyebrow="Data lifecycle"
         title="Transaction retention"
-        description="Preview historical rows before permanently deleting them and downloading the CSV archive."
+        description="Check historical rows before permanently deleting them and downloading the CSV archive."
       />
 
       <Card className="settings-maintenance-card">
@@ -428,16 +456,28 @@ function MaintenancePanel({ onAuditRefresh, onNotify, reduceMotion }) {
                 }}
               />
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              className="settings-button settings-button--primary"
-              disabled={previewLoading}
-              onClick={runPreview}
-            >
-              {previewLoading ? <LoaderCircle className="animate-spin" /> : <FileClock />}
-              {previewLoading ? "Checking..." : "Preview records"}
-            </Button>
+            <div className="settings-retention-actions">
+              <Button
+                type="button"
+                variant="outline"
+                className="settings-button settings-button--primary"
+                disabled={previewLoading}
+                onClick={runPreview}
+              >
+                {previewLoading ? <LoaderCircle className="animate-spin" /> : <FileClock />}
+                {previewLoading ? "Checking..." : "Preview records"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="settings-button settings-button--danger"
+                disabled={previewLoading}
+                onClick={openDeleteDialog}
+              >
+                <Trash2 aria-hidden="true" />
+                Delete eligible records
+              </Button>
+            </div>
           </div>
 
           {previewError && (
@@ -481,19 +521,6 @@ function MaintenancePanel({ onAuditRefresh, onNotify, reduceMotion }) {
                   <FileDown aria-hidden="true" />
                   A CSV archive downloads automatically after deletion.
                 </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="settings-button settings-button--danger"
-                  disabled={total === 0}
-                  onClick={() => {
-                    setDeleteError("")
-                    setConfirmOpen(true)
-                  }}
-                >
-                  <Trash2 aria-hidden="true" />
-                  Delete eligible records
-                </Button>
               </div>
             </motion.div>
           )}
@@ -504,7 +531,7 @@ function MaintenancePanel({ onAuditRefresh, onNotify, reduceMotion }) {
         <AlertCircle aria-hidden="true" />
         <div>
           <strong>Permanent database action</strong>
-          <p>Preview is required first. Deletion cannot be undone after the CSV archive is generated.</p>
+          <p>Eligible rows are checked again in the confirmation modal. Deletion cannot be undone after the CSV archive is generated.</p>
         </div>
       </div>
 
@@ -519,25 +546,36 @@ function MaintenancePanel({ onAuditRefresh, onNotify, reduceMotion }) {
             <span className="settings-confirm-icon" aria-hidden="true">
               <Trash2 />
             </span>
-            <AlertDialogTitle>Delete {total.toLocaleString("en-PH")} historical rows?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {previewLoading ? "Checking eligible records..." : `Delete ${total.toLocaleString("en-PH")} historical rows?`}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              This permanently removes transaction records older than {preview?.years || years} years.
-              A CSV archive will download when the operation succeeds.
+              Transaction records older than {preview?.years || years} years will be deleted as soon as you confirm.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          {deleteError && (
-            <Alert variant="destructive">
-              <AlertCircle aria-hidden="true" />
-              <AlertDescription>{deleteError}</AlertDescription>
-            </Alert>
+          {previewLoading && <p role="status">Checking which records are eligible...</p>}
+          {preview && total > 0 && (
+            <div className="settings-delete-summary">
+              {summaryItems.map((item) => (
+                <span key={item.key}>{item.label}: <strong>{getCount(preview, item.key).toLocaleString("en-PH")}</strong></span>
+              ))}
+            </div>
           )}
+          <DeleteFeedback
+            warning={previewLoading
+              ? "The eligible records are being checked. No records will be deleted until you confirm."
+              : !preview || total === 0
+                ? "No records are ready to delete. Correct the retention period or review the validation message below."
+                : "The selected order, stock, and item rows will be removed permanently. A CSV archive will download afterward, but it will not restore records to the database."}
+            error={deleteError}
+          />
           <AlertDialogFooter>
             <AlertDialogCancel className="settings-button settings-button--neutral" disabled={deleteBusy}>
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               className="settings-button settings-button--danger"
-              disabled={deleteBusy}
+              disabled={deleteBusy || previewLoading || !preview || total === 0}
               onClick={confirmDelete}
             >
               {deleteBusy ? <LoaderCircle className="animate-spin" /> : <Trash2 />}

@@ -6,7 +6,6 @@ import pandas as pd
 from plotly.utils import PlotlyJSONEncoder
 import plotly.subplots as sp
 from statsmodels.tsa.seasonal import STL
-from dateutil.relativedelta import relativedelta
 import numpy as np
 import json
 import shutil
@@ -656,21 +655,17 @@ def generate_recommendations_from_stl(df: pd.DataFrame, result, top_products_df:
         trend_change = float(trend.iloc[-2] - trend.iloc[-3])
         recent_trend_points = trend.iloc[-3:]
         slope = float((recent_trend_points.iloc[-1] - recent_trend_points.iloc[0]) / (len(recent_trend_points) - 1))
-        last_trend_val = float(trend.iloc[-1])
     elif n_trend == 2:
         trend_change = float(trend.iloc[-1] - trend.iloc[-2])
         slope = trend_change
-        last_trend_val = float(trend.iloc[-1])
     elif n_trend == 1:
         trend_change = 0.0
         slope = 0.0
-        last_trend_val = float(trend.iloc[-1])
     else:
         trend_change = 0.0
         slope = 0.0
-        last_trend_val = 0.0
 
-    # Use current month (forecasted)
+    # Use the latest month in the recorded order data.
     current_date = df.index[-1]
     current_month_str = current_date.strftime('%B %Y')
 
@@ -769,93 +764,7 @@ def generate_recommendations_from_stl(df: pd.DataFrame, result, top_products_df:
         'recs': current_month_grouped
     })
 
-    # ---- Next 3 months (forecast) ----
-    for i in range(1, 4):
-        forecast_date = current_date + relativedelta(months=i)
-        forecast_month_str = forecast_date.strftime('%B %Y')
-
-        # simple trend continuation using slope
-        forecast_trend_val = last_trend_val + (slope * i)
-
-        # seasonal history for that month
-        seasonal_history_future = seasonal[
-            (seasonal.index.month == forecast_date.month) &
-            (seasonal.index < forecast_date.replace(day=1))
-        ]
-        seasonal_effect_future = float(seasonal_history_future.mean()) if not seasonal_history_future.empty else float('nan')
-
-        # top product historically for this forecast month
-        past_top_product_row = top_products_df[
-            (top_products_df['order_month'].dt.month == forecast_date.month) &
-            (top_products_df['order_month'] < forecast_date.replace(day=1))
-        ].sort_values('order_month', ascending=False).head(1)
-        top_product_future = past_top_product_row['top_product'].values[0] if not past_top_product_row.empty else "N/A"
-
-        # Build flat messages (month included) — same style as original
-        if slope > TREND_THRESHOLD:
-            flat_recs.append(
-                f"🟢 {forecast_month_str} Trend Increasing : Consider stocking more materials of <strong>{top_product_future}</strong>."
-            )
-        elif slope < -TREND_THRESHOLD:
-            flat_recs.append(
-                f"🔴 {forecast_month_str} Sustained Trend Decrease : Monitor demand and consider reducing stock of <strong>{top_product_future}</strong>."
-            )
-        else:
-            flat_recs.append(
-                f"⚪ {forecast_month_str} Trend Stable: No major change in demand for <strong>{top_product_future}</strong>."
-            )
-
-        if seasonal_effect_future == seasonal_effect_future:
-            if seasonal_effect_future > 0:
-                flat_recs.append(
-                    f"🌞 Positive seasonality expected in <strong>{forecast_date.strftime('%B')}</strong> — anticipate higher demand."
-                )
-            elif seasonal_effect_future < 0:
-                flat_recs.append(
-                    f"🌧️ Negative seasonality expected in <strong>{forecast_date.strftime('%B')}</strong> — anticipate lower demand."
-                )
-
-        if residual_std > 0.2 * df['total_quantity'].mean():
-            flat_recs.append(
-                f"⚠️ {forecast_month_str}: High residual variability detected — demand is volatile, consider adding safety stock."
-            )
-        else:
-            flat_recs.append(
-                f"✅ {forecast_month_str}: Residuals show stable behavior — current forecasting approach is reliable."
-            )
-
-        # Build grouped/short messages (no month prefix)
-        grouped_msgs = []
-        if slope > TREND_THRESHOLD:
-            grouped_msgs.append(
-                f"🟢 Trend Increasing: Consider stocking more materials of <strong>{top_product_future}</strong>."
-            )
-        elif slope < -TREND_THRESHOLD:
-            grouped_msgs.append(
-                f"🔴 Sustained Trend Decrease: Monitor demand and consider reducing stock of <strong>{top_product_future}</strong>."
-            )
-        else:
-            grouped_msgs.append(
-                f"⚪ Trend Stable: No major change in demand for <strong>{top_product_future}</strong>."
-            )
-
-        if seasonal_effect_future == seasonal_effect_future:
-            if seasonal_effect_future > 0:
-                grouped_msgs.append("🌞 Positive seasonality expected — anticipate higher demand.")
-            elif seasonal_effect_future < 0:
-                grouped_msgs.append("🌧️ Negative seasonality expected — anticipate lower demand.")
-
-        if residual_std > 0.2 * df['total_quantity'].mean():
-            grouped_msgs.append("⚠️ High residual variability detected — consider adding safety stock.")
-        else:
-            grouped_msgs.append("✅ Residuals show stable behavior — forecasting appears reliable.")
-
-        grouped.append({
-            'month': forecast_month_str,
-            'recs': grouped_msgs
-        })
-
-    # Return both flat and grouped
+    # Keep the flat and grouped formats for existing report and dashboard consumers.
     return flat_recs, grouped, {
         "score": confidence_score,
         "label": confidence_label

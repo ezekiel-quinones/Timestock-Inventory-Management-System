@@ -1,5 +1,7 @@
 # Dependencies
 node_modules/
+.venv/
+__pycache__/
 backend/__pycache__
 backend/rdb_timestock_3 copy
 backend/rdb_timestock_3
